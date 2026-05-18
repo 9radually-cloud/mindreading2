@@ -4,6 +4,7 @@ import pandas as pd
 import sqlite3
 import hashlib
 import os
+import psycopg2
 
 # ==========================================
 # 1. 시스템 설정 및 데이터베이스 보안 초기화
@@ -13,7 +14,8 @@ st.set_page_config(page_title="마음 배터리 충전소", page_icon="🌈", la
 DB_FILE = "heart_safety_system.db"
 
 def get_db_connection():
-    return sqlite3.connect(DB_FILE, check_same_thread=False)
+    # 코드에는 주소가 안 보이지만, 인터넷에 배포될 때 비밀 주소를 알아서 읽어옵니다.
+    return psycopg2.connect(st.secrets["db_url"])
 
 def init_db():
     conn = get_db_connection()
