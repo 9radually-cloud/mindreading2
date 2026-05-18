@@ -1,28 +1,28 @@
 import streamlit as st
 import streamlit_shadcn_ui as ui
 import pandas as pd
-import sqlite3
+import psycopg2  # 인터넷 금고 연결용 부품
 import hashlib
 import os
-import psycopg2
 
 # ==========================================
-# 1. 시스템 설정 및 데이터베이스 보안 초기화
+# 1. 시스템 설정 및 데이터베이스(Supabase PostgreSQL) 보안 초기화
 # ==========================================
 st.set_page_config(page_title="마음 배터리 충전소", page_icon="🌈", layout="wide")
-
-DB_FILE = "heart_safety_system.db"
 
 def get_db_connection():
     # 코드에는 주소가 안 보이지만, 인터넷에 배포될 때 비밀 주소를 알아서 읽어옵니다.
     return psycopg2.connect(st.secrets["db_url"])
 
 def init_db():
+    """수파베이스(PostgreSQL) 문법에 맞게 테이블 생성자 전면 수정"""
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    # [수정] AUTOINCREMENT 대신 SERIAL PRIMARY KEY 문법 적용
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             role TEXT DEFAULT 'student',
             grade INTEGER,
             room INTEGER,
@@ -34,17 +34,17 @@ def init_db():
     """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS records (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id),
             week INTEGER,
             score REAL,
-            FOREIGN KEY(user_id) REFERENCES users(id),
             UNIQUE(user_id, week)
         )
     """)
     conn.commit()
     conn.close()
 
+# 앱 켜질 때 인터넷 금고에 방이 없으면 자동으로 방을 만듭니다.
 init_db()
 
 def make_hash(password):
@@ -68,7 +68,6 @@ st.markdown("""
     
     .block-container { padding-left: 8rem; padding-right: 8rem; max-width: 90%; }
     
-    /* 🎨 버그를 일으키던 하드코딩 div 스타일을 지우고, 순정 테두리 컨테이너를 프리미엄 카드로 튜닝 */
     div[data-testid="stVerticalBlockBorderWrapper"] {
         background-color: #FFFFFF !important;
         border: 1px solid #E5E7EB !important;
@@ -146,7 +145,6 @@ if st.session_state.login_user_id is None and 'app_mode' in locals() and app_mod
     
     _, center_col, _ = st.columns([1, 2, 1])
     with center_col:
-        # 💡 [버그 수정 핵심] HTML 코드 대신 순정 배포판 박스 컨테이너 격리 구조로 교체
         with st.container(border=True):
             st.subheader("🧑‍🎓 학생 로그인 및 등록")
             
@@ -166,21 +164,30 @@ if st.session_state.login_user_id is None and 'app_mode' in locals() and app_mod
                 else:
                     conn = get_db_connection()
                     cursor = conn.cursor()
-                    cursor.execute("SELECT id, name, password_hash FROM users WHERE grade=? AND room=? AND number=? AND role='student'", (s_grade, s_room, s_number))
+                    
+                    # [수정] ? 기호를 %s 기호로 전면 교정 완료
+                    cursor.execute("SELECT id, name, password_hash FROM users WHERE grade=%s AND room=%s AND number=%s AND role='student'", (s_grade, s_room, s_number))
                     user = cursor.fetchone()
                     hashed_pw = make_hash(s_password)
                     
                     if user is None:
                         try:
-                            cursor.execute("INSERT INTO users (role, grade, room, number, name, password_hash) VALUES ('student', ?, ?, ?, ?, ?)", 
+                            # [수정] ? 기호를 %s 기호로 전면 교정 완료
+                            cursor.execute("INSERT INTO users (role, grade, room, number, name, password_hash) VALUES ('student', %s, %s, %s, %s, %s)", 
                                            (s_grade, s_room, s_number, s_name, hashed_pw))
                             conn.commit()
-                            st.session_state.login_user_id = cursor.lastrowid
+                            st.session_state.login_user_id = cursor.lastrowid if cursor.lastrowid else 1
+                            
+                            # PostgreSQL 처리를 위해 새로 저장된 ID 강제 추적 로직 보정
+                            cursor.execute("SELECT id FROM users WHERE grade=%s AND room=%s AND number=%s AND role='student'", (s_grade, s_room, s_number))
+                            st.session_state.login_user_id = cursor.fetchone()[0]
+                            
                             st.session_state.login_user_name = f"{s_grade}학년 {s_room}반 {s_number}번 {s_name}"
                             st.session_state.login_role = "student"
                             st.session_state.needs_password_change = (s_password == "12345678")
                             st.rerun()
-                        except sqlite3.IntegrityError:
+                        # [수정] 예외 처리 클래스를 psycopg2용으로 정밀화
+                        except psycopg2.IntegrityError:
                             st.error("❌ 이미 등록된 학적 정보입니다.")
                     else:
                         if user[2] == hashed_pw:
@@ -220,7 +227,8 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
                     else:
                         conn = get_db_connection()
                         cursor = conn.cursor()
-                        cursor.execute("UPDATE users SET password_hash=? WHERE id=?", (make_hash(new_pw), st.session_state.login_user_id))
+                        # [수정] ? -> %s
+                        cursor.execute("UPDATE users SET password_hash=%s WHERE id=%s", (make_hash(new_pw), st.session_state.login_user_id))
                         conn.commit()
                         conn.close()
                         
@@ -254,7 +262,8 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
                 conn = get_db_connection()
                 cursor = conn.cursor()
                 prev_week = select_week - 1
-                cursor.execute("SELECT score FROM records WHERE user_id=? AND week=?", (st.session_state.login_user_id, prev_week))
+                # [수정] ? -> %s
+                cursor.execute("SELECT score FROM records WHERE user_id=%s AND week=%s", (st.session_state.login_user_id, prev_week))
                 prev_row = cursor.fetchone()
                 prev_ema = prev_row[0] if prev_row else None
                 
@@ -262,9 +271,10 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
                 else: new_ema = (raw_score * 0.6) + (prev_ema * 0.4)
                 new_ema = round(new_ema, 2)
                 
+                # PostgreSQL 대응 Upsert 구조 고도화
                 cursor.execute("""
-                    INSERT INTO records (user_id, week, score) VALUES (?, ?, ?)
-                    ON CONFLICT(user_id, week) DO UPDATE SET score=excluded.score
+                    INSERT INTO records (user_id, week, score) VALUES (%s, %s, %s)
+                    ON CONFLICT(user_id, week) DO UPDATE SET score=EXCLUDED.score
                 """, (st.session_state.login_user_id, select_week, new_ema))
                 conn.commit()
                 conn.close()
@@ -298,7 +308,8 @@ elif st.session_state.login_user_id is None and 'app_mode' in locals() and app_m
                         else:
                             conn = get_db_connection()
                             cursor = conn.cursor()
-                            cursor.execute("INSERT INTO users (role, name, password_hash) VALUES ('teacher', ?, ?)", (t_reg_name, make_hash(t_reg_pw)))
+                            # [수정] ? -> %s
+                            cursor.execute("INSERT INTO users (role, name, password_hash) VALUES ('teacher', %s, %s)", (t_reg_name, make_hash(t_reg_pw)))
                             conn.commit()
                             conn.close()
                             st.success("등록 완료! 로그인을 진행하세요.")
@@ -314,7 +325,8 @@ elif st.session_state.login_user_id is None and 'app_mode' in locals() and app_m
                     else:
                         conn = get_db_connection()
                         cursor = conn.cursor()
-                        cursor.execute("SELECT id, name, password_hash FROM users WHERE name=? AND role='teacher'", (t_login_name,))
+                        # [수정] ? -> %s
+                        cursor.execute("SELECT id, name, password_hash FROM users WHERE name=%s AND role='teacher'", (t_login_name,))
                         t_user = cursor.fetchone()
                         conn.close()
                         
@@ -337,7 +349,8 @@ elif st.session_state.login_user_id and st.session_state.login_role == "teacher"
         df_students["display_name"] = df_students.apply(lambda r: f"{r['grade']}학년 {r['room']}반 {r['number']}번 {r['name']}", axis=1)
         selected_student_id = st.selectbox("📊 관리 및 분석 대상 학생 지정", df_students["id"].tolist(), format_func=lambda x: df_students[df_students["id"]==x]["display_name"].values[0])
         
-        df_records = pd.read_sql_query("SELECT week, score FROM records WHERE user_id=? ORDER BY week ASC", conn, params=(int(selected_student_id),))
+        # [수정] 판다스 쿼리문 내 파라미터도 ? 에서 %s 로 변경
+        df_records = pd.read_sql_query("SELECT week, score FROM records WHERE user_id=%s ORDER BY week ASC", conn, params=(int(selected_student_id),))
         conn.close()
         
         col_dash1, col_dash2 = st.columns([1, 2])
@@ -363,7 +376,8 @@ elif st.session_state.login_user_id and st.session_state.login_role == "teacher"
                 conn = get_db_connection()
                 cursor = conn.cursor()
                 reset_hash = make_hash("12345678")
-                cursor.execute("UPDATE users SET password_hash=? WHERE id=?", (reset_hash, int(selected_student_id)))
+                # [수정] ? -> %s
+                cursor.execute("UPDATE users SET password_hash=%s WHERE id=%s", (reset_hash, int(selected_student_id)))
                 conn.commit()
                 conn.close()
                 st.success("해당 학생의 비밀번호가 '12345678'로 변경되었습니다.")
