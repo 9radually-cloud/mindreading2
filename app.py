@@ -29,6 +29,8 @@ def get_db_connection():
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    # 1. 기본 테이블 생성
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -36,7 +38,7 @@ def init_db():
             grade INTEGER,
             room INTEGER,
             number INTEGER,
-            sex TEXT,
+            sex TEXT DEFAULT 'male',
             name TEXT,
             password_hash TEXT,
             UNIQUE(grade, room, number, role)
@@ -46,31 +48,39 @@ def init_db():
         CREATE TABLE IF NOT EXISTS records (
             id SERIAL PRIMARY KEY,
             user_id INTEGER REFERENCES users(id),
+            month INTEGER DEFAULT 5,
             week INTEGER,
             score REAL
         )
     """)
-    
-    # [스마트 달력 도입] 기존 records 테이블에 month 컬럼이 없으면 자동 추가 및 제약조건 갱신
-    cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='records' AND column_name='month'")
-    if not cursor.fetchone():
-        cursor.execute("ALTER TABLE records ADD COLUMN month INTEGER DEFAULT 5")
-        cursor.execute("ALTER TABLE records DROP CONSTRAINT IF EXISTS records_user_id_week_key")
-        try:
-            cursor.execute("ALTER TABLE records ADD CONSTRAINT records_user_id_month_week_key UNIQUE(user_id, month, week)")
-        except Exception:
-            pass
-    else:
-        try:
-            cursor.execute("ALTER TABLE records ADD CONSTRAINT records_user_id_month_week_key UNIQUE(user_id, month, week)")
-        except Exception:
-            pass
-            
-    cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='sex'")
-    if not cursor.fetchone():
-        cursor.execute("ALTER TABLE users ADD COLUMN sex TEXT DEFAULT 'male'")
-        
     conn.commit()
+    
+    # 2. month 컬럼 추가
+    try:
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='records' AND column_name='month'")
+        if not cursor.fetchone():
+            cursor.execute("ALTER TABLE records ADD COLUMN month INTEGER DEFAULT 5")
+            conn.commit()
+    except Exception:
+        conn.rollback()
+        
+    # 3. 고유 제약조건 업데이트 (🚨 롤백 방어막 핵심)
+    try:
+        cursor.execute("ALTER TABLE records DROP CONSTRAINT IF EXISTS records_user_id_week_key")
+        cursor.execute("ALTER TABLE records ADD CONSTRAINT records_user_id_month_week_key UNIQUE(user_id, month, week)")
+        conn.commit()
+    except Exception:
+        conn.rollback()  
+        
+    # 4. sex 컬럼 추가
+    try:
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='sex'")
+        if not cursor.fetchone():
+            cursor.execute("ALTER TABLE users ADD COLUMN sex TEXT DEFAULT 'male'")
+            conn.commit()
+    except Exception:
+        conn.rollback()
+        
     conn.close()
 
 init_db()
