@@ -182,7 +182,7 @@ else:
 # 🧑‍🎓 4. 학생용 채널
 # ==========================================
 if st.session_state.login_user_id is None and 'app_mode' in locals() and app_mode == "🧑‍🎓 학생용 채널":
-    ui.card(title="오늘 하루 나의 기분은?", content="요즘 자신의 기분이 어떤지 기록하는 공간입니다.", description="선생님이 여러분의 학교생활에 참고하기 위한 질문들이에요").render()
+    ui.card(title="오늘 하루 나의 기분은?", content="여러분의 마음을 기록하는 공간입니다.", description="선생님이 여러분의 학교생활에 참고하기 위한 질문들이에요").render()
     
     st.divider()
     _, center_col, _ = st.columns([1, 8, 1])
