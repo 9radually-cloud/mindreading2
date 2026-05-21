@@ -146,7 +146,7 @@ st.markdown("""
     }
     
     div.row-widget.stRadio > div { gap: 14px; margin-bottom: 20px; padding: 20px; background-color: #F9FAFB; border: 2px solid #E5E7EB; border-radius: 12px; }
-    label { line-height: 1.8 !important; font-size: 1.1rem !important; color: #374151; font-weight: 600; word-break: keep-all; }
+    label { line-height: 1.8 !important; font-size: 1.1rem !important; color: #374151; font-weight: 600; word-break: keep-all; white-space: pre-wrap !important; }
     .stButton>button { width: 100%; font-size: 1.2rem !important; font-weight: 600 !important; padding: 12px !important; border-radius: 10px !important; }
     </style>
 """, unsafe_allow_html=True)
@@ -156,7 +156,7 @@ SURVEY_DATA = {
     "loneliness": {"icon": "🍱", "question": "오늘 학교 쉬는 시간이나 점심시간에 보낼 내 모습을 상상해보면,<br>내 마음이 어떨 것 같나요?", "options": ["친구들과 신나게 어울려 놀거나,\n혹은 혼자서 책 읽기나 그리기를 하더라도 내 마음이 편안하고 만족스러울 것 같다.", "같이 놀거나 이야기할 친구가 없어서 교실에 가만히 있거나,\n어떻게 시간을 보내야 할지 몰라 마음이 불안하고 쓸쓸할 것 같다."], "weight_m": 0.90, "weight_f": 0.91},
     "stress": {"icon": "📝", "question": "오늘 학교에서 예상하지 못한 작은 과제나 귀찮은 일이 갑자기 생긴다면,<br>내 마음이 어떨 것 같나요?", "options": ["‘얼른 해버려야지!’ 하고 가벼운 마음으로 편안하게 받아들일 수 있을 것 같다.", "오늘따라 마음의 여유가 없어서, 아주 작은 일 하나도 평소보다 훨씬 더 무겁고 답답하게 느껴질 것 같다."], "weight_m": 0.97, "weight_f": 0.97},
     "anxiety": {"icon": "🎮", "question": "이번 주 일주일 동안 일어날 일들을 생각할 때,<br>걱정하는 마음 때문에 지금 내가 해야 할 공부나 놀이에 집중하기가 힘든가요?", "options": ["걱정이 조금 되더라도, 내가 할 일이나 친구들과 노는 것에는 별로 지장이 없다.", "걱정스러운 생각이 머릿속을 가득 채워서, 다른 일에 집중하기 어렵고 마음이 온통 그곳에 쏠려 있다."], "weight_m": 0.76, "weight_f": 0.80},
-    "sleep_deprivation": {"icon": "🔋", "question": "오늘 아침에 눈을 떴을 때, 내 몸과 마음의 배터리가 어느 정도 충전된 느낌이었나요?", "options": ["이불 속에서 조금 더 자고 싶긴 했지만,\n막상 일어나서 세수를 하니 평소처럼 학교에 가서 활동할 에너지는 충분한 것 같다.", "잠을 자긴 했는데 피로가 전혀 풀리지 않은 것처럼 온몸이 무겁고,\n하루를 시작하기도 전에 이미 에너지가 바닥난 것처럼 지친다."], "weight_m": 0.22, "weight_f": 0.19}
+    "sleep_deprivation": {"icon": "🔋", "question": "오늘 아침에 눈을 떴을 때,<br>내 몸과 마음의 배터리가 어느 정도 충전된 느낌이었나요?", "options": ["이불 속에서 조금 더 자고 싶긴 했지만,\n막상 일어나서 세수를 하니 평소처럼 학교에 가서 활동할 에너지는 충분한 것 같다.", "잠을 자긴 했는데 피로가 전혀 풀리지 않은 것처럼 온몸이 무겁고,\n하루를 시작하기도 전에 이미 에너지가 바닥난 것처럼 지친다."], "weight_m": 0.22, "weight_f": 0.19}
 }
 
 # ==========================================
@@ -267,7 +267,7 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
             st.balloons()
             st.title(f"🌈 {st.session_state.login_user_name} 친구, 고생했어요!")
             random_message = random.choice(ENCOURAGING_MESSAGES)
-            st.success(f"### 🎉 요즘의 마음 전달이 완료되었습니다!\n\n---\n\n## 💌 **{random_message}**\n\n---\n\n선생님께서 소중한 마음을 확인하실 거예요.\n\n안전을 위해 왼쪽의 **[로그아웃]** 버튼을 눌러 창을 닫아주세요.")
+            st.success(f"### 🎉 마음 전달이 완료되었습니다!\n\n---\n\n## 💌 **{random_message}**\n\n---\n\n선생님께서 여러분의 소중한 마음을 확인하실 거예요.\n\n안전을 위해 왼쪽의 **[로그아웃]** 버튼을 눌러 창을 닫아주세요.")
             
         else:
             st.title(f"🌈 {st.session_state.login_user_name} 친구, 환영해요!")
