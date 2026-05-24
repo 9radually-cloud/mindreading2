@@ -2,3 +2,4 @@ streamlit
 pandas
 streamlit-shadcn-ui
 psycopg2-binary
+plotly

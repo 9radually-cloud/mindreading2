@@ -6,6 +6,7 @@ import hashlib
 import random
 import datetime
 import calendar
+import plotly.graph_objects as go
 
 # ==========================================
 # 💌 선생님 전용: 응원 메시지 보관함
@@ -53,9 +54,20 @@ def init_db():
             score REAL
         )
     """)
+    # [신규] 학급별 설정 테이블 (③번 - 학급 기본 α)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS class_settings (
+            id SERIAL PRIMARY KEY,
+            school TEXT,
+            grade INTEGER,
+            room INTEGER,
+            default_alpha REAL DEFAULT 0.6,
+            UNIQUE(school, grade, room)
+        )
+    """)
     conn.commit()
     
-    # 2. month 컬럼 추가
+    # 2. month 컬럼 추가 (기존 호환)
     try:
         cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='records' AND column_name='month'")
         if not cursor.fetchone():
@@ -64,7 +76,7 @@ def init_db():
     except Exception:
         conn.rollback()
         
-    # 3. 고유 제약조건 업데이트 (🚨 롤백 방어막 핵심)
+    # 3. records 고유 제약조건 업데이트
     try:
         cursor.execute("ALTER TABLE records DROP CONSTRAINT IF EXISTS records_user_id_week_key")
         cursor.execute("ALTER TABLE records ADD CONSTRAINT records_user_id_month_week_key UNIQUE(user_id, month, week)")
@@ -80,6 +92,34 @@ def init_db():
             conn.commit()
     except Exception:
         conn.rollback()
+    
+    # 5. [신규] users 테이블에 school 컬럼 추가 (②번 - 다교사)
+    try:
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='school'")
+        if not cursor.fetchone():
+            cursor.execute("ALTER TABLE users ADD COLUMN school TEXT")
+            conn.commit()
+    except Exception:
+        conn.rollback()
+    
+    # 6. [신규] users 테이블에 teacher_grade, teacher_room 컬럼 (②번)
+    try:
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='teacher_grade'")
+        if not cursor.fetchone():
+            cursor.execute("ALTER TABLE users ADD COLUMN teacher_grade INTEGER")
+            cursor.execute("ALTER TABLE users ADD COLUMN teacher_room INTEGER")
+            conn.commit()
+    except Exception:
+        conn.rollback()
+    
+    # 7. [신규] users 테이블에 custom_alpha 컬럼 (③번 - 학생 개별 α)
+    try:
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='custom_alpha'")
+        if not cursor.fetchone():
+            cursor.execute("ALTER TABLE users ADD COLUMN custom_alpha REAL")
+            conn.commit()
+    except Exception:
+        conn.rollback()
         
     conn.close()
 
@@ -88,392 +128,259 @@ init_db()
 def make_hash(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
+# ==========================================
+# [신규 함수] 현재 날짜 기준 자동 월/주차 계산 (④번)
+# ==========================================
+def get_current_month_week():
+    """오늘 날짜 기준으로 (월, 주차) 자동 계산"""
+    today = datetime.date.today()
+    year, month, day = today.year, today.month, today.day
+    
+    # 이번 달의 모든 월요일 찾기
+    num_days = calendar.monthrange(year, month)[1]
+    mondays = []
+    for d in range(1, num_days + 1):
+        if datetime.date(year, month, d).weekday() == 0:
+            mondays.append(d)
+    
+    # 오늘이 속한 주차 계산 (가장 가까운 이전 월요일 기준)
+    week_num = 1
+    for i, mday in enumerate(mondays):
+        if mday <= day:
+            week_num = i + 1
+        else:
+            break
+    
+    return month, week_num, year, mondays[week_num - 1]
+
+# ==========================================
+# [신규 함수] 학급 기본 α 조회 (③번)
+# ==========================================
+def get_class_alpha(school, grade, room):
+    """해당 학급의 기본 α 값 조회. 없으면 0.6 기본값"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT default_alpha FROM class_settings WHERE school=%s AND grade=%s AND room=%s",
+                   (school, grade, room))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else 0.6
+
+# ==========================================
+# [신규 함수] 학생용 α 계산 (학생 개별 우선, 없으면 학급 기본)
+# ==========================================
+def get_effective_alpha(student_id, school, grade, room):
+    """학생 개별 α가 있으면 그걸, 없으면 학급 기본 α 사용"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT custom_alpha FROM users WHERE id=%s", (student_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row and row[0] is not None:
+        return row[0]
+    return get_class_alpha(school, grade, room)
+
+# ==========================================
+# 세션 상태 초기화
+# ==========================================
 if "login_user_id" not in st.session_state: st.session_state.login_user_id = None
 if "login_user_name" not in st.session_state: st.session_state.login_user_name = None
 if "login_user_sex" not in st.session_state: st.session_state.login_user_sex = None
+if "login_user_school" not in st.session_state: st.session_state.login_user_school = None
+if "login_user_grade" not in st.session_state: st.session_state.login_user_grade = None
+if "login_user_room" not in st.session_state: st.session_state.login_user_room = None
 if "login_role" not in st.session_state: st.session_state.login_role = None
 if "needs_password_change" not in st.session_state: st.session_state.needs_password_change = False
 if "current_step" not in st.session_state: st.session_state.current_step = 0
 if "survey_responses" not in st.session_state: st.session_state.survey_responses = {}
 if "survey_completed" not in st.session_state: st.session_state.survey_completed = False
+if "question_order" not in st.session_state: st.session_state.question_order = None  # ①번 - 셔플 순서
 
+# ==========================================
+# 2. 모던 스타일 CSS
 # ==========================================
 st.markdown("""
     <style>
-    /* ========== 폰트 로딩 ========== */
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
     
-    /* ========== 전역 배경 (애니메이션 그라데이션) ========== */
     html, body, [data-testid="stAppViewContainer"], .stApp {
         background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe) !important;
         background-size: 400% 400% !important;
         animation: gradientShift 18s ease infinite !important;
         font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
-    
     @keyframes gradientShift {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
     }
+    [data-testid="stHeader"] { background: transparent !important; }
     
-    /* 헤더 투명 처리 */
-    [data-testid="stHeader"] {
-        background: transparent !important;
-    }
-    
-    /* ========== 메인 컨테이너 여백 ========== */
-    .block-container { 
-        padding: 2rem 5% !important; 
-        max-width: 100% !important; 
-    }
+    .block-container { padding: 2rem 5% !important; max-width: 100% !important; }
     @media (min-width: 768px) {
-        .block-container { 
-            padding: 3rem 12% !important; 
-            max-width: 95% !important; 
-        }
+        .block-container { padding: 3rem 12% !important; max-width: 95% !important; }
     }
     
-    /* ========== 카드 (Glassmorphism 유리 질감) ========== */
     div[data-testid="stVerticalBlockBorderWrapper"] {
         background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(20px) !important;
         -webkit-backdrop-filter: blur(20px) !important;
         border: 1px solid rgba(255, 255, 255, 0.4) !important;
         border-radius: 24px !important;
-        box-shadow: 
-            0 20px 60px -10px rgba(102, 126, 234, 0.3),
-            0 8px 25px -5px rgba(118, 75, 162, 0.15) !important;
+        box-shadow: 0 20px 60px -10px rgba(102, 126, 234, 0.3), 0 8px 25px -5px rgba(118, 75, 162, 0.15) !important;
         padding: 2.5rem !important;
         margin-top: 1.2rem !important;
         transition: transform 0.3s ease, box-shadow 0.3s ease !important;
     }
-    
     div[data-testid="stVerticalBlockBorderWrapper"]:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 
-            0 25px 70px -10px rgba(102, 126, 234, 0.4),
-            0 10px 30px -5px rgba(118, 75, 162, 0.2) !important;
+        box-shadow: 0 25px 70px -10px rgba(102, 126, 234, 0.4), 0 10px 30px -5px rgba(118, 75, 162, 0.2) !important;
     }
-    
     @media (max-width: 768px) {
-        div[data-testid="stVerticalBlockBorderWrapper"] { 
-            padding: 1.5rem !important; 
-            border-radius: 20px !important;
-        }
+        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 1.5rem !important; border-radius: 20px !important; }
     }
     
-    /* ========== 제목 (h1, h2, h3) ========== */
     h1 {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        -webkit-background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
+        -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
         background-clip: text !important;
-        font-weight: 800 !important;
-        font-size: 2.2rem !important;
-        letter-spacing: -0.02em !important;
-        text-align: center !important;
-        margin-bottom: 0.5rem !important;
+        font-weight: 800 !important; font-size: 2.2rem !important; letter-spacing: -0.02em !important;
+        text-align: center !important; margin-bottom: 0.5rem !important;
     }
+    h2, h3 { color: #1F2937 !important; font-weight: 800 !important; letter-spacing: -0.01em !important; }
     
-    h2, h3 {
-        color: #1F2937 !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.01em !important;
-    }
-    
-    /* ========== 입력창 (텍스트, 숫자) ========== */
     div[data-testid="stTextInput"] input, 
     div[data-testid="stNumberInput"] input {
-        background-color: #FFFFFF !important;
-        border: 2px solid #E5E7EB !important;
-        border-radius: 12px !important;
-        color: #1F2937 !important;
-        font-size: 1rem !important;
-        padding: 10px 14px !important;
-        transition: all 0.2s ease !important;
+        background-color: #FFFFFF !important; border: 2px solid #E5E7EB !important;
+        border-radius: 12px !important; color: #1F2937 !important;
+        font-size: 1rem !important; padding: 10px 14px !important; transition: all 0.2s ease !important;
+    }
+    div[data-testid="stTextInput"] input:focus, div[data-testid="stNumberInput"] input:focus {
+        border-color: #667eea !important; box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important; outline: none !important;
     }
     
-    /* ========== Selectbox (드롭다운) ========== */
     div[data-baseweb="select"] > div {
-        background-color: #FFFFFF !important;
-        border: 2px solid #E5E7EB !important;
-        border-radius: 12px !important;
-        transition: all 0.2s ease !important;
+        background-color: #FFFFFF !important; border: 2px solid #E5E7EB !important;
+        border-radius: 12px !important; transition: all 0.2s ease !important;
     }
-    
-    /* 드롭다운 안의 선택된 값 글자 (검정색 강제) */
     div[data-baseweb="select"] div[data-baseweb="select-control"] *,
-    div[data-baseweb="select"] span,
-    div[data-baseweb="select"] div {
-        color: #1F2937 !important;
-    }
+    div[data-baseweb="select"] span, div[data-baseweb="select"] div { color: #1F2937 !important; }
+    ul[role="listbox"] { background-color: #FFFFFF !important; border-radius: 12px !important; }
+    ul[role="listbox"] li { color: #1F2937 !important; background-color: #FFFFFF !important; }
+    ul[role="listbox"] li:hover { background-color: #F3F4F6 !important; }
     
-    /* 드롭다운 펼쳤을 때 옵션 목록 */
-    ul[role="listbox"] {
-        background-color: #FFFFFF !important;
-        border-radius: 12px !important;
-    }
-    
-    ul[role="listbox"] li {
-        color: #1F2937 !important;
-        background-color: #FFFFFF !important;
-    }
-    
-    ul[role="listbox"] li:hover {
-        background-color: #F3F4F6 !important;
-    }
-    div[data-testid="stTextInput"] input:focus, 
-    div[data-testid="stNumberInput"] input:focus {
-        border-color: #667eea !important;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important;
-        outline: none !important;
-    }
-    
-    /* ========== 설문 질문 텍스트 ========== */
     .question-text { 
-        font-size: 1.4rem !important; 
-        font-weight: 800 !important;
-        line-height: 1.8 !important; 
-        color: #1F2937 !important;
-        margin-bottom: 24px !important;
-        text-align: center !important;
-        word-break: keep-all !important;
+        font-size: 1.4rem !important; font-weight: 800 !important; line-height: 1.8 !important; 
+        color: #1F2937 !important; margin-bottom: 24px !important;
+        text-align: center !important; word-break: keep-all !important;
     }
     
-    /* ========== 라디오 선택지 (선택 카드 스타일) ========== */
     div.row-widget.stRadio > div { 
-        gap: 14px !important; 
-        margin-bottom: 20px !important; 
-        padding: 24px !important;
+        gap: 14px !important; margin-bottom: 20px !important; padding: 24px !important;
         background: linear-gradient(135deg, #F8F9FF 0%, #FDF4FF 100%) !important;
-        border: 2px solid rgba(102, 126, 234, 0.15) !important;
-        border-radius: 18px !important;
+        border: 2px solid rgba(102, 126, 234, 0.15) !important; border-radius: 18px !important;
     }
-    
     div.row-widget.stRadio label {
-        background: #FFFFFF !important;
-        border: 2px solid #E5E7EB !important;
-        border-radius: 14px !important;
-        padding: 16px 20px !important;
-        transition: all 0.25s ease !important;
-        cursor: pointer !important;
+        background: #FFFFFF !important; border: 2px solid #E5E7EB !important;
+        border-radius: 14px !important; padding: 16px 20px !important;
+        transition: all 0.25s ease !important; cursor: pointer !important;
     }
-    
     div.row-widget.stRadio label:hover {
-        border-color: #667eea !important;
-        background: #F8F9FF !important;
-        transform: translateX(4px) !important;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
+        border-color: #667eea !important; background: #F8F9FF !important;
+        transform: translateX(4px) !important; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
     }
+    label { line-height: 1.8 !important; font-size: 1.1rem !important; color: #374151 !important;
+        font-weight: 600 !important; word-break: keep-all !important; white-space: pre-wrap !important; }
     
-    label { 
-        line-height: 1.8 !important; 
-        font-size: 1.1rem !important; 
-        color: #374151 !important;
-        font-weight: 600 !important;
-        word-break: keep-all !important;
-        white-space: pre-wrap !important;
-    }
-    
-    /* ========== 버튼 (그라데이션 + 호버 애니메이션) ========== */
     .stButton > button {
-        width: 100% !important;
-        font-size: 1.15rem !important;
-        font-weight: 700 !important;
-        padding: 14px 20px !important;
-        border-radius: 14px !important;
-        border: none !important;
+        width: 100% !important; font-size: 1.15rem !important; font-weight: 700 !important;
+        padding: 14px 20px !important; border-radius: 14px !important; border: none !important;
         background: linear-gradient(135deg, #A8B5FF 0%, #C3A8E8 100%) !important;
-        color: #FFFFFF !important;
-        box-shadow: 0 4px 14px rgba(102, 126, 234, 0.3) !important;
-        transition: all 0.25s ease !important;
-        letter-spacing: -0.01em !important;
+        color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.3) !important;
+        transition: all 0.25s ease !important; letter-spacing: -0.01em !important;
     }
-    
     .stButton > button:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0 8px 22px rgba(102, 126, 234, 0.4) !important;
         background: linear-gradient(135deg, #8B9BFF 0%, #B391DD 100%) !important;
     }
-    
-    .stButton > button:active {
-        transform: translateY(0) !important;
-    }
-    
-    /* primary 버튼 (강조 - 민트 그라데이션) */
+    .stButton > button:active { transform: translateY(0) !important; }
     .stButton > button[kind="primary"] {
         background: linear-gradient(135deg, #43E97B 0%, #38F9D7 100%) !important;
-        box-shadow: 0 4px 14px rgba(67, 233, 123, 0.4) !important;
-        color: #064E3B !important;
+        box-shadow: 0 4px 14px rgba(67, 233, 123, 0.4) !important; color: #064E3B !important;
     }
-    
     .stButton > button[kind="primary"]:hover {
         background: linear-gradient(135deg, #2DD86A 0%, #28E5C0 100%) !important;
         box-shadow: 0 8px 22px rgba(67, 233, 123, 0.5) !important;
     }
     
-    /* ========== 진행 바 ========== */
     div[data-testid="stProgress"] > div > div > div {
         background: linear-gradient(90deg, #667eea 0%, #f093fb 50%, #4facfe 100%) !important;
-        border-radius: 10px !important;
-        height: 12px !important;
+        border-radius: 10px !important; height: 12px !important;
     }
-    
     div[data-testid="stProgress"] > div > div {
-        background-color: rgba(255, 255, 255, 0.4) !important;
-        border-radius: 10px !important;
-        height: 12px !important;
+        background-color: rgba(255, 255, 255, 0.4) !important; border-radius: 10px !important; height: 12px !important;
     }
     
-    /* ========== 사이드바 ========== */
     [data-testid="stSidebar"] {
         background: rgba(255, 255, 255, 0.92) !important;
-        backdrop-filter: blur(15px) !important;
-        -webkit-backdrop-filter: blur(15px) !important;
+        backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important;
         border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
     }
+    [data-testid="stSidebar"] h1 { font-size: 1.4rem !important; }
     
-    [data-testid="stSidebar"] h1 {
-        font-size: 1.4rem !important;
-    }
-    
-    /* ========== 알림 박스 (success, info, warning, error) ========== */
     div[data-testid="stAlert"] {
-        border-radius: 16px !important;
-        border: none !important;
-        padding: 16px 20px !important;
-        backdrop-filter: blur(10px) !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+        border-radius: 16px !important; border: none !important; padding: 16px 20px !important;
+        backdrop-filter: blur(10px) !important; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
     }
-    
-    /* ========== 데이터 프레임 ========== */
     div[data-testid="stDataFrame"] {
-        border-radius: 16px !important;
-        overflow: hidden !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+        border-radius: 16px !important; overflow: hidden !important; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
     }
-    
-    /* ========== 캡션 텍스트 ========== */
-    div[data-testid="stCaptionContainer"] {
-        text-align: center !important;
-        color: #6B7280 !important;
-        font-weight: 600 !important;
-    }
-    
-    /* ========== Expander ========== */
+    div[data-testid="stCaptionContainer"] { text-align: center !important; color: #6B7280 !important; font-weight: 600 !important; }
     div[data-testid="stExpander"] {
-        border-radius: 16px !important;
-        border: 1px solid rgba(102, 126, 234, 0.2) !important;
-        background: rgba(255, 255, 255, 0.7) !important;
-        backdrop-filter: blur(10px) !important;
+        border-radius: 16px !important; border: 1px solid rgba(102, 126, 234, 0.2) !important;
+        background: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(10px) !important;
     }
     
-    /* ========== shadcn 카드 컴포넌트 ========== */
-    [data-testid="stHorizontalBlock"] {
-        gap: 1rem !important;
-    }
-    
-    /* ========== 이모지 아이콘 박스 (설문 화면용) ========== */
     .emoji-badge {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 110px;
-        height: 110px;
-        margin: 0 auto 24px auto;
+        display: flex; align-items: center; justify-content: center;
+        width: 110px; height: 110px; margin: 0 auto 24px auto;
         background: linear-gradient(135deg, #FEF3FF 0%, #E0E7FF 100%);
-        border-radius: 50%;
-        font-size: 4.2rem;
-        box-shadow: 
-            0 10px 30px rgba(102, 126, 234, 0.25),
-            inset 0 -4px 10px rgba(118, 75, 162, 0.1);
+        border-radius: 50%; font-size: 4.2rem;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.25), inset 0 -4px 10px rgba(118, 75, 162, 0.1);
         animation: floatBadge 3s ease-in-out infinite;
     }
+    @keyframes floatBadge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     
-    @keyframes floatBadge {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
-    }
-    
-    /* ========== 환영 헤더 ========== */
     .hero-header {
-        text-align: center;
-        padding: 28px 20px;
+        text-align: center; padding: 28px 20px;
         background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 100%);
-        backdrop-filter: blur(20px);
-        border-radius: 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(20px); border-radius: 24px; margin-bottom: 24px;
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2); border: 1px solid rgba(255, 255, 255, 0.5);
     }
-    
-    .hero-header .hero-emoji {
-        font-size: 3.5rem;
-        margin-bottom: 12px;
-        display: inline-block;
-        animation: waveEmoji 2.5s ease-in-out infinite;
-    }
-    
-    @keyframes waveEmoji {
-        0%, 100% { transform: rotate(0deg); }
-        25% { transform: rotate(-10deg); }
-        75% { transform: rotate(10deg); }
-    }
-    
+    .hero-header .hero-emoji { font-size: 3.5rem; margin-bottom: 12px; display: inline-block; animation: waveEmoji 2.5s ease-in-out infinite; }
+    @keyframes waveEmoji { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
     .hero-header h2 {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-weight: 800;
-        font-size: 1.8rem;
-        margin: 0;
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        font-weight: 800; font-size: 1.8rem; margin: 0;
     }
+    .hero-header p { color: #6B7280; font-size: 1rem; margin-top: 8px; font-weight: 500; }
     
-    .hero-header p {
-        color: #6B7280;
-        font-size: 1rem;
-        margin-top: 8px;
-        font-weight: 500;
-    }
-    
-    /* ========== 완료 화면 카드 ========== */
     .completion-card {
-        text-align: center;
-        padding: 40px 30px;
+        text-align: center; padding: 40px 30px;
         background: linear-gradient(135deg, #FEF3FF 0%, #E0E7FF 50%, #DBEAFE 100%);
-        border-radius: 28px;
-        box-shadow: 0 20px 50px rgba(102, 126, 234, 0.25);
-        border: 2px solid rgba(255, 255, 255, 0.6);
-        margin-top: 20px;
+        border-radius: 28px; box-shadow: 0 20px 50px rgba(102, 126, 234, 0.25);
+        border: 2px solid rgba(255, 255, 255, 0.6); margin-top: 20px;
     }
-    
-    .completion-card .big-emoji {
-        font-size: 5rem;
-        margin-bottom: 16px;
-        display: inline-block;
-        animation: bounceEmoji 1.5s ease infinite;
-    }
-    
-    @keyframes bounceEmoji {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-15px); }
-    }
-    
+    .completion-card .big-emoji { font-size: 5rem; margin-bottom: 16px; display: inline-block; animation: bounceEmoji 1.5s ease infinite; }
+    @keyframes bounceEmoji { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
     .completion-card .message {
-        background: rgba(255, 255, 255, 0.85);
-        border-radius: 18px;
-        padding: 24px 20px;
-        margin-top: 20px;
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #4C1D95;
-        line-height: 1.7;
+        background: rgba(255, 255, 255, 0.85); border-radius: 18px; padding: 24px 20px; margin-top: 20px;
+        font-size: 1.3rem; font-weight: 700; color: #4C1D95; line-height: 1.7;
         box-shadow: inset 0 2px 8px rgba(102, 126, 234, 0.1);
     }
     
-    /* ========== 모바일 최적화 ========== */
     @media (max-width: 768px) {
         h1 { font-size: 1.6rem !important; }
         .question-text { font-size: 1.15rem !important; }
@@ -481,14 +388,13 @@ st.markdown("""
         .stButton > button { font-size: 1rem !important; padding: 12px !important; }
         label { font-size: 1rem !important; }
     }
-    
     </style>
 """, unsafe_allow_html=True)
 
 SURVEY_DATA = {
     "depression": {"icon": "🖥️", "question": "지금 당장 내가 제일 좋아하는 유튜브 영상이나 게임을 볼 수 있다면,<br>내 마음이 어떨 것 같나요?", "options": ["평소처럼 생각만 해도 신나고 빨리 보고 싶다.", "오늘따라 귀찮거나 별로 하고 싶은 생각이 안 든다."], "weight_m": 1.60, "weight_f": 1.17},
     "loneliness": {"icon": "🍱", "question": "오늘 학교 쉬는 시간이나 점심시간에 보낼 내 모습을 상상해보면,<br>내 마음이 어떨 것 같나요?", "options": ["친구들과 신나게 어울려 놀거나,\n혹은 혼자서 책 읽기나 그리기를 하더라도 내 마음이 편안하고 만족스러울 것 같다.", "같이 놀거나 이야기할 친구가 없어서 교실에 가만히 있거나,\n어떻게 시간을 보내야 할지 몰라 마음이 불안하고 쓸쓸할 것 같다."], "weight_m": 0.90, "weight_f": 0.91},
-    "stress": {"icon": "📝", "question": "오늘 학교에서 예상하지 못한 작은 과제나 귀찮은 일이 갑자기 생긴다면,<br>내 마음이 어떨 것 같나요?", "options": ["‘얼른 해버려야지!’ 하고 가벼운 마음으로 편안하게 받아들일 수 있을 것 같다.", "오늘따라 마음의 여유가 없어서, 아주 작은 일 하나도 평소보다 훨씬 더 무겁고 답답하게 느껴질 것 같다."], "weight_m": 0.97, "weight_f": 0.97},
+    "stress": {"icon": "📝", "question": "오늘 학교에서 예상하지 못한 작은 과제나 귀찮은 일이 갑자기 생긴다면,<br>내 마음이 어떨 것 같나요?", "options": ["'얼른 해버려야지!' 하고 가벼운 마음으로 편안하게 받아들일 수 있을 것 같다.", "오늘따라 마음의 여유가 없어서, 아주 작은 일 하나도 평소보다 훨씬 더 무겁고 답답하게 느껴질 것 같다."], "weight_m": 0.97, "weight_f": 0.97},
     "anxiety": {"icon": "🎮", "question": "이번 주 일주일 동안 일어날 일들을 생각할 때,<br>걱정하는 마음 때문에 지금 내가 해야 할 공부나 놀이에 집중하기가 힘든가요?", "options": ["걱정이 조금 되더라도, 내가 할 일이나 친구들과 노는 것에는 별로 지장이 없다.", "걱정스러운 생각이 머릿속을 가득 채워서, 다른 일에 집중하기 어렵고 마음이 온통 그곳에 쏠려 있다."], "weight_m": 0.76, "weight_f": 0.80},
     "sleep_deprivation": {"icon": "🔋", "question": "오늘 아침에 눈을 떴을 때,<br>내 몸과 마음의 배터리가 어느 정도 충전된 느낌이었나요?", "options": ["이불 속에서 조금 더 자고 싶긴 했지만,\n막상 일어나서 세수를 하니 평소처럼 학교에 가서 활동할 에너지는 충분한 것 같다.", "잠을 자긴 했는데 피로가 전혀 풀리지 않은 것처럼 온몸이 무겁고,\n하루를 시작하기도 전에 이미 에너지가 바닥난 것처럼 지친다."], "weight_m": 0.22, "weight_f": 0.19}
 }
@@ -500,14 +406,8 @@ st.sidebar.title("🔐 시스템 제어판")
 if st.session_state.login_user_id is not None:
     st.sidebar.success(f"🟩 {st.session_state.login_user_name}님")
     if st.sidebar.button("로그아웃"):
-        st.session_state.login_user_id = None
-        st.session_state.login_user_name = None
-        st.session_state.login_user_sex = None
-        st.session_state.login_role = None
-        st.session_state.needs_password_change = False
-        st.session_state.current_step = 0
-        st.session_state.survey_responses = {}
-        st.session_state.survey_completed = False
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
         st.rerun()
 else:
     app_mode = st.sidebar.radio("접속 권한 선택", ["🧑‍🎓 학생용 채널", "🧑‍🏫 교사 관리자 채널"])
@@ -517,18 +417,20 @@ else:
 # ==========================================
 if st.session_state.login_user_id is None and 'app_mode' in locals() and app_mode == "🧑‍🎓 학생용 채널":
     st.markdown("""
-    <div class="hero-header">
-        <div class="hero-emoji">🌈</div>
-        <h2>오늘 하루 나의 기분은?</h2>
-        <p>여러분의 마음을 기록하는 안전한 공간이에요 💖</p>
-    </div>
-""", unsafe_allow_html=True)
+        <div class="hero-header">
+            <div class="hero-emoji">🌈</div>
+            <h2>오늘 하루 나의 기분은?</h2>
+            <p>여러분의 마음을 기록하는 안전한 공간이에요 💖</p>
+        </div>
+    """, unsafe_allow_html=True)
     
-    st.divider()
     _, center_col, _ = st.columns([1, 8, 1])
     with center_col:
         with st.container(border=True):
             st.subheader("🧑‍🎓 학생 로그인 및 등록")
+            
+            # [수정] 학교 입력 추가 (②번 - 다교사 지원)
+            s_school = st.text_input("🏫 학교 이름", placeholder="예: 한국초등학교")
             
             c1, c2, c3, c4, c5 = st.columns(5)
             with c1: s_grade = st.selectbox("학년", list(range(1, 7)), index=3)
@@ -544,25 +446,32 @@ if st.session_state.login_user_id is None and 'app_mode' in locals() and app_mod
             s_password = st.text_input("비밀번호 (8자 ~ 16자)", type="password")
             
             if st.button("🚪 학생 로그인 / 최초 등록", type="primary"):
-                if s_number == 0: st.error("❌ 번호는 1번 이상이어야 합니다.")
+                if not s_school: st.error("❌ 학교 이름을 입력해 주세요.")
+                elif s_number == 0: st.error("❌ 번호는 1번 이상이어야 합니다.")
                 elif not s_name or not s_password: st.error("❌ 이름과 비밀번호를 모두 입력해 주세요.")
                 elif not (8 <= len(s_password) <= 16): st.error("❌ 비밀번호는 반드시 8자 이상, 16자 이하여야 합니다.")
                 else:
                     conn = get_db_connection()
                     cursor = conn.cursor()
-                    cursor.execute("SELECT id, name, password_hash, sex FROM users WHERE grade=%s AND room=%s AND number=%s AND role='student'", (s_grade, s_room, s_number))
+                    cursor.execute("SELECT id, name, password_hash, sex, school FROM users WHERE school=%s AND grade=%s AND room=%s AND number=%s AND role='student'", 
+                                   (s_school, s_grade, s_room, s_number))
                     user = cursor.fetchone()
                     hashed_pw = make_hash(s_password)
                     
                     if user is None:
                         try:
-                            cursor.execute("INSERT INTO users (role, grade, room, number, sex, name, password_hash) VALUES ('student', %s, %s, %s, %s, %s, %s)", 
-                                           (s_grade, s_room, s_number, s_sex, s_name, hashed_pw))
+                            cursor.execute("""INSERT INTO users (role, school, grade, room, number, sex, name, password_hash) 
+                                              VALUES ('student', %s, %s, %s, %s, %s, %s, %s)""", 
+                                           (s_school, s_grade, s_room, s_number, s_sex, s_name, hashed_pw))
                             conn.commit()
-                            cursor.execute("SELECT id, sex FROM users WHERE grade=%s AND room=%s AND number=%s AND role='student'", (s_grade, s_room, s_number))
+                            cursor.execute("SELECT id, sex FROM users WHERE school=%s AND grade=%s AND room=%s AND number=%s AND role='student'", 
+                                           (s_school, s_grade, s_room, s_number))
                             new_user = cursor.fetchone()
                             st.session_state.login_user_id = new_user[0]
                             st.session_state.login_user_sex = new_user[1]
+                            st.session_state.login_user_school = s_school
+                            st.session_state.login_user_grade = s_grade
+                            st.session_state.login_user_room = s_room
                             st.session_state.login_user_name = f"{s_grade}학년 {s_room}반 {s_number}번 {s_name}"
                             st.session_state.login_role = "student"
                             st.session_state.needs_password_change = (s_password == "12345678")
@@ -574,6 +483,9 @@ if st.session_state.login_user_id is None and 'app_mode' in locals() and app_mod
                             else:
                                 st.session_state.login_user_id = user[0]
                                 st.session_state.login_user_sex = user[3]
+                                st.session_state.login_user_school = user[4]
+                                st.session_state.login_user_grade = s_grade
+                                st.session_state.login_user_room = s_room
                                 st.session_state.login_user_name = f"{s_grade}학년 {s_room}반 {s_number}번 {s_name}"
                                 st.session_state.login_role = "student"
                                 st.session_state.needs_password_change = (s_password == "12345678")
@@ -612,7 +524,6 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
                     <p>마음을 솔직하게 들려줘서 고마워요 💝</p>
                 </div>
             """, unsafe_allow_html=True)
-
             random_message = random.choice(ENCOURAGING_MESSAGES)
             st.markdown(f"""
                 <div class="completion-card">
@@ -627,8 +538,22 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
             """, unsafe_allow_html=True)
             
         else:
-            st.title(f"🌈 {st.session_state.login_user_name} 친구, 환영해요!")
-            keys = list(SURVEY_DATA.keys())
+            st.markdown(f"""
+                <div class="hero-header">
+                    <div class="hero-emoji">🌈</div>
+                    <h2>{st.session_state.login_user_name} 친구, 환영해요!</h2>
+                    <p>마음 가는 대로 솔직하게 답해주면 돼요 💝</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # ===== ①번 개선: 문항 순서 셔플 =====
+            # 학생 한 번 입장 시 셔플된 순서를 세션에 저장 (중간에 바뀌지 않도록)
+            if st.session_state.question_order is None:
+                keys = list(SURVEY_DATA.keys())
+                random.shuffle(keys)
+                st.session_state.question_order = keys
+            
+            keys = st.session_state.question_order
             total_steps = len(keys)
             step = st.session_state.current_step
             key = keys[step]
@@ -636,23 +561,13 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
             
             _, main_col, _ = st.columns([1, 8, 1])
             with main_col:
-                # [수정] 1번 아키텍처: 스마트 달력 월간/주차 자동 매핑
+                # ===== ④번 개선: 학생은 월/주차 선택 불가, 자동 결정 =====
                 if step == 0:
-                    current_year = 2026
-                    st.session_state.select_month = st.selectbox("📅 몇 월 기록인가요?", list(range(1, 13)), format_func=lambda x: f"{x}월", index=datetime.date.today().month - 1)
+                    auto_month, auto_week, auto_year, auto_monday_day = get_current_month_week()
+                    st.session_state.select_month = auto_month
+                    st.session_state.select_week = auto_week
                     
-                    # 선택된 월의 월요일 날짜들 자동 연산
-                    num_days = calendar.monthrange(current_year, st.session_state.select_month)[1]
-                    mondays = []
-                    for day in range(1, num_days + 1):
-                        if datetime.date(current_year, st.session_state.select_month, day).weekday() == 0:
-                            mondays.append(day)
-                    
-                    st.session_state.select_week = st.selectbox(
-                        "📅 확인할 주차의 월요일을 선택해 주세요", 
-                        list(range(1, len(mondays) + 1)), 
-                        format_func=lambda x: f"{x}주차 ({st.session_state.select_month}월 {mondays[x-1]}일)"
-                    )
+                    st.info(f"📅 **{auto_year}년 {auto_month}월 {auto_week}주차** ({auto_month}월 {auto_monday_day}일 주) 기록입니다.\n\n오늘 날짜를 기준으로 자동 입력되었어요.")
                 
                 st.progress((step + 1) / total_steps)
                 st.caption(f"총 {total_steps}개 질문 중 {step + 1}번째 질문")
@@ -683,24 +598,36 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
                             raw_score = sum(SURVEY_DATA[k][weight_key] * st.session_state.survey_responses.get(k, 0) for k in SURVEY_DATA)
                             raw_score = round(raw_score, 2)
                             
+                            # ===== ③번 개선: 학급 기본 α + 학생 개별 α =====
+                            alpha = get_effective_alpha(
+                                st.session_state.login_user_id,
+                                st.session_state.login_user_school,
+                                st.session_state.login_user_grade,
+                                st.session_state.login_user_room
+                            )
+                            
                             conn = get_db_connection()
                             cursor = conn.cursor()
                             
-                            # 직전 연산 피드백 추적 알고리즘 (동일 월 내 또는 전월 말일 주차 추적 보정)
+                            # 직전 주차 EMA 추적
                             prev_week = st.session_state.select_week - 1
                             prev_month = st.session_state.select_month
                             if prev_week == 0:
                                 prev_month = st.session_state.select_month - 1 if st.session_state.select_month > 1 else 12
-                                p_num_days = calendar.monthrange(2026, prev_month)[1]
-                                p_m_count = sum(1 for d in range(1, p_num_days + 1) if datetime.date(2026, prev_month, d).weekday() == 0)
+                                p_year = datetime.date.today().year if prev_month <= datetime.date.today().month else datetime.date.today().year - 1
+                                p_num_days = calendar.monthrange(p_year, prev_month)[1]
+                                p_m_count = sum(1 for d in range(1, p_num_days + 1) if datetime.date(p_year, prev_month, d).weekday() == 0)
                                 prev_week = p_m_count
 
-                            cursor.execute("SELECT score FROM records WHERE user_id=%s AND month=%s AND week=%s", (st.session_state.login_user_id, prev_month, prev_week))
+                            cursor.execute("SELECT score FROM records WHERE user_id=%s AND month=%s AND week=%s", 
+                                           (st.session_state.login_user_id, prev_month, prev_week))
                             prev_row = cursor.fetchone()
                             prev_ema = prev_row[0] if prev_row else None
                             
-                            if prev_ema is None: new_ema = raw_score
-                            else: new_ema = (raw_score * 0.6) + (prev_ema * 0.4)
+                            if prev_ema is None: 
+                                new_ema = raw_score
+                            else: 
+                                new_ema = (raw_score * alpha) + (prev_ema * (1 - alpha))
                             new_ema = round(new_ema, 2)
                             
                             cursor.execute("""
@@ -721,156 +648,284 @@ elif st.session_state.login_user_id is None and 'app_mode' in locals() and app_m
     _, center_col, _ = st.columns([1, 4, 1])
     with center_col:
         with st.container(border=True):
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT id FROM users WHERE role='teacher'")
-            teacher_exists = cursor.fetchone()
-            conn.close()
+            # ===== ②번 개선: 다교사 지원 =====
+            tab1, tab2 = st.tabs(["🔒 교사 로그인", "📝 신규 교사 등록"])
             
-            if not teacher_exists:
-                t_reg_name = st.text_input("교사 성함 입력")
-                t_reg_pw = st.text_input("신규 비밀번호 입력 (8~16자)", type="password")
-                if st.button("🔐 마스터 계정 등록 승인"):
-                    if t_reg_name and (8 <= len(t_reg_pw) <= 16):
-                        conn = get_db_connection()
-                        cursor = conn.cursor()
-                        cursor.execute("INSERT INTO users (role, name, password_hash) VALUES ('teacher', %s, %s)", (t_reg_name, make_hash(t_reg_pw)))
-                        conn.commit()
-                        conn.close()
-                        st.rerun()
-            else:
-                st.subheader("🔒 관리자 로그인")
-                t_login_name = st.text_input("교사 성함")
-                t_login_pw = st.text_input("관리자 비밀번호", type="password")
+            with tab1:
+                t_login_school = st.text_input("🏫 학교 이름", key="login_school")
+                t_login_name = st.text_input("교사 성함", key="login_name")
+                t_login_pw = st.text_input("관리자 비밀번호", type="password", key="login_pw")
                 if st.button("🚪 관리자 시스템 로그인", type="primary"):
                     conn = get_db_connection()
                     cursor = conn.cursor()
-                    cursor.execute("SELECT id, name, password_hash FROM users WHERE name=%s AND role='teacher'", (t_login_name,))
+                    cursor.execute("""SELECT id, name, password_hash, school, teacher_grade, teacher_room 
+                                      FROM users WHERE school=%s AND name=%s AND role='teacher'""", 
+                                   (t_login_school, t_login_name))
                     t_user = cursor.fetchone()
                     conn.close()
                     
                     if t_user and t_user[2] == make_hash(t_login_pw):
                         st.session_state.login_user_id = t_user[0]
                         st.session_state.login_user_name = t_user[1]
+                        st.session_state.login_user_school = t_user[3]
+                        st.session_state.login_user_grade = t_user[4]
+                        st.session_state.login_user_room = t_user[5]
                         st.session_state.login_role = "teacher"
                         st.rerun()
-                    else: st.error("❌ 관리자 인증 정보가 불일치합니다.")
+                    else: 
+                        st.error("❌ 학교명/교사명/비밀번호를 다시 확인해 주세요.")
+            
+            with tab2:
+                t_reg_school = st.text_input("🏫 소속 학교 이름", key="reg_school")
+                t_reg_name = st.text_input("교사 성함", key="reg_name")
+                col_g, col_r = st.columns(2)
+                with col_g: t_reg_grade = st.selectbox("담임 학년", list(range(1, 7)), key="reg_grade")
+                with col_r: t_reg_room = st.selectbox("담임 반", list(range(1, 13)), key="reg_room")
+                t_reg_pw = st.text_input("비밀번호 (8~16자)", type="password", key="reg_pw")
+                
+                if st.button("🔐 신규 교사 계정 등록"):
+                    if not (t_reg_school and t_reg_name and (8 <= len(t_reg_pw) <= 16)):
+                        st.error("❌ 모든 정보를 입력해 주세요. 비밀번호는 8~16자입니다.")
+                    else:
+                        conn = get_db_connection()
+                        cursor = conn.cursor()
+                        # 중복 체크
+                        cursor.execute("SELECT id FROM users WHERE school=%s AND name=%s AND role='teacher'",
+                                       (t_reg_school, t_reg_name))
+                        if cursor.fetchone():
+                            st.error("❌ 같은 학교에 이미 등록된 교사 성함입니다.")
+                        else:
+                            cursor.execute("""INSERT INTO users (role, school, teacher_grade, teacher_room, name, password_hash) 
+                                              VALUES ('teacher', %s, %s, %s, %s, %s)""", 
+                                           (t_reg_school, t_reg_grade, t_reg_room, t_reg_name, make_hash(t_reg_pw)))
+                            # 학급 기본 α 자동 생성
+                            cursor.execute("""INSERT INTO class_settings (school, grade, room, default_alpha) 
+                                              VALUES (%s, %s, %s, 0.6) 
+                                              ON CONFLICT(school, grade, room) DO NOTHING""",
+                                           (t_reg_school, t_reg_grade, t_reg_room))
+                            conn.commit()
+                            conn.close()
+                            st.success("🎉 등록 완료! 위 탭에서 로그인하세요.")
 
 elif st.session_state.login_user_id and st.session_state.login_role == "teacher":
-    st.title(f"👩‍🏫 {st.session_state.login_user_name} 마스터 관리자 통제실")
+    teacher_school = st.session_state.login_user_school
+    teacher_grade = st.session_state.login_user_grade
+    teacher_room = st.session_state.login_user_room
+    
+    st.title(f"👩‍🏫 {st.session_state.login_user_name} 선생님 통제실")
+    st.caption(f"🏫 {teacher_school} | {teacher_grade}학년 {teacher_room}반 담임")
     st.divider()
     
     conn = get_db_connection()
-    df_students = pd.read_sql_query("SELECT id, grade, room, sex, number, name FROM users WHERE role='student' ORDER BY grade ASC, room ASC, sex ASC, number ASC", conn)
+    
+    # ===== ③번: 학급 기본 α 설정 UI =====
+    with st.expander("⚙️ **학급 EMA 민감도 설정** (전체 학생 기본값)", expanded=False):
+        current_alpha = get_class_alpha(teacher_school, teacher_grade, teacher_room)
+        st.markdown(f"""
+        - **α 값이란?** 새 점수를 얼마나 빨리 반영할지 결정합니다.
+        - **현재 학급 기본값: `{current_alpha}`**
+        - 높을수록 (예: 0.8) → 최근 변화에 민감
+        - 낮을수록 (예: 0.3) → 안정적, 노이즈 완충
+        """)
+        new_alpha = st.slider("학급 기본 α", 0.1, 0.9, float(current_alpha), 0.05)
+        if st.button("💾 학급 기본값 저장"):
+            cursor = conn.cursor()
+            cursor.execute("""INSERT INTO class_settings (school, grade, room, default_alpha) 
+                              VALUES (%s, %s, %s, %s)
+                              ON CONFLICT(school, grade, room) DO UPDATE SET default_alpha=EXCLUDED.default_alpha""",
+                           (teacher_school, teacher_grade, teacher_room, new_alpha))
+            conn.commit()
+            st.success(f"✅ 학급 기본 α 가 {new_alpha} 로 저장되었습니다.")
+            st.rerun()
+    
+    # ===== 학생 필터링 - 본인 학급만 =====
+    df_students = pd.read_sql_query(
+        """SELECT id, grade, room, sex, number, name, custom_alpha 
+           FROM users WHERE role='student' AND school=%s AND grade=%s AND room=%s
+           ORDER BY number ASC""", 
+        conn, params=(teacher_school, teacher_grade, teacher_room))
     
     if not df_students.empty:
-        st.subheader("🔍 학생 데이터베이스 다중 필터링")
-        f_col1, f_col2, f_col3 = st.columns(3)
+        st.subheader(f"📚 {teacher_grade}학년 {teacher_room}반 학생 명단")
         
-        grades_list = sorted(df_students['grade'].unique().tolist())
-        rooms_list = sorted(df_students['room'].unique().tolist())
-        
-        with f_col1: filter_grade = st.selectbox("학년 필터", ["전체"] + grades_list)
-        with f_col2: filter_room = st.selectbox("반 필터", ["전체"] + rooms_list)
-        with f_col3: filter_sex = st.selectbox("성별 필터", ["전체", "남자", "여자"])
+        f_col1, f_col2 = st.columns(2)
+        with f_col1: filter_sex = st.selectbox("성별 필터", ["전체", "남자", "여자"])
         
         filtered_df = df_students.copy()
-        if filter_grade != "전체": filtered_df = filtered_df[filtered_df['grade'] == filter_grade]
-        if filter_room != "전체": filtered_df = filtered_df[filtered_df['room'] == filter_room]
         if filter_sex != "전체":
             s_val = 'male' if filter_sex == "남자" else 'female'
             filtered_df = filtered_df[filtered_df['sex'] == s_val]
             
-        filtered_df["display_name"] = filtered_df.apply(lambda r: f"{r['grade']}학년 {r['room']}반 {r['number']}번 {r['name']} ({'남' if r['sex']=='male' else '여'})", axis=1)
+        filtered_df["display_name"] = filtered_df.apply(lambda r: f"{r['number']}번 {r['name']} ({'남' if r['sex']=='male' else '여'})", axis=1)
         
-        display_table = filtered_df[['grade', 'room', 'number', 'sex', 'name']].copy()
+        display_table = filtered_df[['number', 'sex', 'name', 'custom_alpha']].copy()
         display_table['sex'] = display_table['sex'].apply(lambda x: '남' if x == 'male' else '여')
-        display_table.columns = ['학년', '반', '번호', '성별', '이름']
+        display_table['custom_alpha'] = display_table['custom_alpha'].apply(lambda x: f"개별 {x}" if pd.notna(x) else f"기본 {get_class_alpha(teacher_school, teacher_grade, teacher_room)}")
+        display_table.columns = ['번호', '성별', '이름', '적용 α']
         st.dataframe(display_table, use_container_width=True, hide_index=True)
         st.divider()
 
-        # [추가] 체크박스 기반의 학생 다중 일괄 삭제 기능 탑재
-        st.subheader("👥 학생 계정 일괄 관리 및 다중 삭제")
-        with st.expander("❌ 일괄 삭제를 진행할 학생들을 다중 선택하세요 (체크박스)"):
+        # 학생 일괄 삭제
+        with st.expander("👥 학생 계정 일괄 삭제"):
             selected_to_delete = []
             for idx, r in filtered_df.iterrows():
-                chk = st.checkbox(f"{r['grade']}학년 {r['room']}반 {r['number']}번 {r['name']} ({'남' if r['sex']=='male' else '여'})", key=f"bulk_del_{r['id']}")
+                chk = st.checkbox(f"{r['number']}번 {r['name']} ({'남' if r['sex']=='male' else '여'})", key=f"bulk_del_{r['id']}")
                 if chk:
                     selected_to_delete.append(r['id'])
             
             if selected_to_delete:
-                st.warning(f"⚠️ 경고: 선택한 {len(selected_to_delete)}명의 학생 학적과 모든 주차별 마음 기록이 영구 파괴됩니다.")
-                if st.button("🗑️ 선택된 학생 전원 일괄 삭제", type="primary"):
+                st.warning(f"⚠️ 선택한 {len(selected_to_delete)}명의 학적과 기록이 영구 삭제됩니다.")
+                if st.button("🗑️ 선택된 학생 일괄 삭제", type="primary"):
                     cursor = conn.cursor()
                     cursor.execute("DELETE FROM records WHERE user_id = ANY(%s)", (selected_to_delete,))
                     cursor.execute("DELETE FROM users WHERE id = ANY(%s)", (selected_to_delete,))
                     conn.commit()
-                    st.success("🎉 선택한 모든 학생 데이터가 일괄 제거되었습니다.")
+                    st.success("🎉 일괄 삭제 완료.")
                     st.rerun()
 
         st.divider()
 
         if not filtered_df.empty:
-            selected_student_id = st.selectbox("📊 상세 분석 대상 개별 지정", filtered_df["id"].tolist(), format_func=lambda x: filtered_df[filtered_df["id"]==x]["display_name"].values[0])
+            selected_student_id = st.selectbox("📊 상세 분석 대상 학생", filtered_df["id"].tolist(), 
+                                                format_func=lambda x: filtered_df[filtered_df["id"]==x]["display_name"].values[0])
             target_student = filtered_df[filtered_df['id'] == selected_student_id].iloc[0]
             student_sex = target_student['sex']
             
-            df_records = pd.read_sql_query("SELECT month, week, score FROM records WHERE user_id=%s ORDER BY month ASC, week ASC", conn, params=(int(selected_student_id),))
+            df_records = pd.read_sql_query("SELECT month, week, score FROM records WHERE user_id=%s ORDER BY month ASC, week ASC", 
+                                            conn, params=(int(selected_student_id),))
             
             col_dash1, col_dash2 = st.columns([1, 2])
             with col_dash1:
-                st.markdown("### 📉 주간 캘리브레이션 분석 결과")
+                st.markdown("### 📉 주차별 분석 결과")
                 
                 for _, row in df_records.iterrows():
-                    m = int(row['month'])
-                    w = int(row['week'])
-                    sc = row['score']
-                    
+                    m, w, sc = int(row['month']), int(row['week']), row['score']
                     if student_sex == 'male':
-                        if sc >= 2.6: status = "🚨 위험군 (즉각 개입 요망)"
-                        elif sc >= 1.0: status = "🟠 주의군 (정기 관찰 필요)"
+                        if sc >= 2.6: status = "🚨 위험군 (즉각 개입)"
+                        elif sc >= 1.0: status = "🟠 주의군"
                         else: status = "🟢 안정군"
                     else:
-                        if sc >= 2.9: status = "🚨 위험군 (즉각 개입 요망)"
-                        elif sc >= 1.0: status = "🟠 주의군 (정기 관찰 필요)"
+                        if sc >= 2.9: status = "🚨 위험군 (즉각 개입)"
+                        elif sc >= 1.0: status = "🟠 주의군"
                         else: status = "🟢 안정군"
-                    st.markdown(f"• **{m}월 {w}주차**: `{sc}` $\rightarrow$ {status}")
+                    st.markdown(f"• **{m}월 {w}주차**: `{sc}` → {status}")
                 
                 st.divider()
-                st.markdown("⚙️ **개별 학생 기록 및 제어 조치**")
+                
+                # ===== ③번: 학생 개별 α 설정 =====
+                st.markdown("⚙️ **이 학생 개별 α 설정**")
+                current_custom = target_student['custom_alpha']
+                class_alpha = get_class_alpha(teacher_school, teacher_grade, teacher_room)
+                
+                if pd.notna(current_custom):
+                    st.info(f"현재 개별 α: **{current_custom}** (학급 기본값 `{class_alpha}` 대신 적용 중)")
+                else:
+                    st.info(f"현재 학급 기본값 적용: **{class_alpha}**")
+                
+                use_custom = st.checkbox("이 학생에게 개별 α 적용", value=pd.notna(current_custom))
+                if use_custom:
+                    custom_val = st.slider("개별 α 값", 0.1, 0.9, 
+                                            float(current_custom) if pd.notna(current_custom) else float(class_alpha), 
+                                            0.05, key=f"custom_alpha_{selected_student_id}")
+                    if st.button("💾 개별 α 저장"):
+                        cursor = conn.cursor()
+                        cursor.execute("UPDATE users SET custom_alpha=%s WHERE id=%s", (custom_val, int(selected_student_id)))
+                        conn.commit()
+                        st.success("✅ 개별 α 저장됨")
+                        st.rerun()
+                else:
+                    if pd.notna(current_custom):
+                        if st.button("🔄 개별 설정 해제 (학급 기본값 사용)"):
+                            cursor = conn.cursor()
+                            cursor.execute("UPDATE users SET custom_alpha=NULL WHERE id=%s", (int(selected_student_id),))
+                            conn.commit()
+                            st.success("✅ 학급 기본값으로 복귀")
+                            st.rerun()
+                
+                st.divider()
+                st.markdown("⚙️ **기록 및 계정 관리**")
                 
                 if not df_records.empty:
                     record_options = df_records.apply(lambda r: f"{int(r['month'])}월 {int(r['week'])}주차 기록", axis=1).tolist()
                     record_mapping = {f"{int(r['month'])}월 {int(r['week'])}주차 기록": (int(r['month']), int(r['week'])) for _, r in df_records.iterrows()}
                     
-                    del_label = st.selectbox("초기화 대상 주차 지정", record_options)
-                    if st.button("🗑️ 지정 주차 정서 기록 삭제"):
+                    del_label = st.selectbox("초기화 대상 주차", record_options)
+                    if st.button("🗑️ 지정 주차 기록 삭제"):
                         del_m, del_w = record_mapping[del_label]
                         cursor = conn.cursor()
-                        cursor.execute("DELETE FROM records WHERE user_id=%s AND month=%s AND week=%s", (int(selected_student_id), del_m, del_w))
+                        cursor.execute("DELETE FROM records WHERE user_id=%s AND month=%s AND week=%s", 
+                                       (int(selected_student_id), del_m, del_w))
                         conn.commit()
-                        st.success(f"🎉 {del_label}이 완벽히 정제되었습니다.")
+                        st.success(f"🎉 {del_label} 삭제 완료.")
                         st.rerun()
-                else:
-                    st.info("초기화할 주차 기록이 존재하지 않습니다.")
-
-                if st.button("🔄 본 학생 비밀번호 '12345678' 원격 초기화"):
+                
+                if st.button("🔄 본 학생 비밀번호 초기화"):
                     cursor = conn.cursor()
                     cursor.execute("UPDATE users SET password_hash=%s WHERE id=%s", (make_hash("12345678"), int(selected_student_id)))
                     conn.commit()
-                    st.success("해당 학생 암호가 초기화 규격으로 원격 변경되었습니다.")
+                    st.success("✅ 비밀번호가 '12345678'로 초기화되었습니다.")
                         
             with col_dash2:
+                # ===== ⑤번 개선: Plotly 차트로 위험 임계선 시각화 =====
                 df_chart = df_records.dropna()
                 if not df_chart.empty:
                     df_chart["label"] = df_chart.apply(lambda r: f"{int(r['month'])}월 {int(r['week'])}주차", axis=1)
-                    df_chart = df_chart.set_index("label")
-                    st.line_chart(df_chart[["score"]])
+                    
+                    # 성별에 따른 임계선
+                    if student_sex == 'male':
+                        danger_line = 2.6
+                        warning_line = 1.0
+                    else:
+                        danger_line = 2.9
+                        warning_line = 1.0
+                    
+                    fig = go.Figure()
+                    
+                    # 위험 영역 (빨간 띠)
+                    fig.add_hrect(y0=danger_line, y1=4.5, fillcolor="rgba(239, 68, 68, 0.15)", 
+                                  line_width=0, annotation_text="🚨 위험군", annotation_position="top left",
+                                  annotation_font_color="#DC2626", annotation_font_size=12)
+                    # 주의 영역 (주황 띠)
+                    fig.add_hrect(y0=warning_line, y1=danger_line, fillcolor="rgba(251, 146, 60, 0.15)", 
+                                  line_width=0, annotation_text="🟠 주의군", annotation_position="top left",
+                                  annotation_font_color="#EA580C", annotation_font_size=12)
+                    # 안정 영역 (초록 띠)
+                    fig.add_hrect(y0=0, y1=warning_line, fillcolor="rgba(34, 197, 94, 0.15)", 
+                                  line_width=0, annotation_text="🟢 안정군", annotation_position="top left",
+                                  annotation_font_color="#16A34A", annotation_font_size=12)
+                    
+                    # 임계선
+                    fig.add_hline(y=danger_line, line_dash="dash", line_color="#DC2626", line_width=2,
+                                  annotation_text=f"위험 임계선 {danger_line}", annotation_position="right")
+                    fig.add_hline(y=warning_line, line_dash="dash", line_color="#EA580C", line_width=2,
+                                  annotation_text=f"주의 임계선 {warning_line}", annotation_position="right")
+                    
+                    # 학생 데이터
+                    fig.add_trace(go.Scatter(
+                        x=df_chart["label"], y=df_chart["score"],
+                        mode='lines+markers',
+                        line=dict(color='#667eea', width=3),
+                        marker=dict(size=12, color='#764ba2', line=dict(color='#FFFFFF', width=2)),
+                        name='EMA 점수',
+                        hovertemplate='%{x}<br>점수: %{y}<extra></extra>'
+                    ))
+                    
+                    fig.update_layout(
+                        title=dict(text=f"📈 {target_student['name']} 학생 정서 추이", font=dict(size=16, color='#1F2937')),
+                        xaxis=dict(title="주차", gridcolor='rgba(0,0,0,0.05)'),
+                        yaxis=dict(title="EMA 점수", gridcolor='rgba(0,0,0,0.05)', range=[0, 4.5]),
+                        plot_bgcolor='rgba(255,255,255,0.6)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        height=450,
+                        showlegend=False,
+                        margin=dict(l=50, r=80, t=60, b=50)
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
                 else:
-                    st.info("시계열 변화 그래프를 렌더링할 정서 응답 데이터가 없습니다.")
+                    st.info("📊 시계열 차트에 표시할 데이터가 없습니다.")
         else:
-            st.warning("지정된 다중 필터 조건에 부합하는 학생이 데이터베이스에 없습니다.")
+            st.warning("필터 조건에 부합하는 학생이 없습니다.")
     else:
-        st.info("📁 등록된 학생 데이터가 없습니다. 학생 채널에서 먼저 등록을 진행해 주세요.")
+        st.info(f"📁 {teacher_grade}학년 {teacher_room}반에 등록된 학생이 없습니다. 학생들이 등록을 마치면 여기에 표시됩니다.")
         
     conn.close()
