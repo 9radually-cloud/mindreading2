@@ -648,8 +648,8 @@ elif st.session_state.login_user_id is None and 'app_mode' in locals() and app_m
     _, center_col, _ = st.columns([1, 4, 1])
     with center_col:
         with st.container(border=True):
-            # ===== ②번 개선: 다교사 지원 =====
-            tab1, tab2 = st.tabs(["🔒 교사 로그인", "📝 신규 교사 등록"])
+            # ===== ②번 개선: 다교사 지원 + 비번 분실 복구 =====
+            tab1, tab2, tab3 = st.tabs(["🔒 교사 로그인", "📝 신규 교사 등록", "🆘 비밀번호 분실"])
             
             with tab1:
                 t_login_school = st.text_input("🏫 학교 이름", key="login_school")
@@ -706,6 +706,79 @@ elif st.session_state.login_user_id is None and 'app_mode' in locals() and app_m
                             conn.commit()
                             conn.close()
                             st.success("🎉 등록 완료! 위 탭에서 로그인하세요.")
+            
+            with tab3:
+                st.markdown("""
+                #### 🔐 보안 안내
+                
+                교사 비밀번호 초기화는 **시스템 관리자(개발자)만** 수행할 수 있습니다.  
+                외부 침입을 막기 위한 안전장치입니다.
+                
+                ---
+                
+                ### 📌 본인이 시스템 관리자인 경우
+                
+                아래에 정보를 입력하면 **데이터베이스에 붙여넣을 SQL 코드**가 자동으로 만들어져요.  
+                이 SQL을 Supabase 대시보드에서 실행하면 비밀번호가 초기화됩니다.
+                """)
+                
+                with st.expander("📖 **단계별 친절한 가이드 (처음이라면 꼭 읽어주세요)**", expanded=False):
+                    st.markdown("""
+                    **1️⃣ 아래에 학교명, 교사 성함, 새 임시 비번 입력**
+                    
+                    **2️⃣ 아래에 생성되는 SQL 코드 복사 (📋 버튼)**
+                    
+                    **3️⃣ Supabase 대시보드 접속**
+                    - https://supabase.com/dashboard
+                    - 본인 프로젝트 선택
+                    
+                    **4️⃣ 왼쪽 사이드바에서 `SQL Editor` (`</>` 모양) 클릭**
+                    
+                    **5️⃣ 가운데 빈 박스에 복사한 SQL 붙여넣기**
+                    
+                    **6️⃣ 오른쪽 아래 초록색 `Run` 버튼 클릭**
+                    
+                    **7️⃣ 사이트로 돌아와 새 비밀번호로 로그인**
+                    
+                    > 💡 로그인 후 곧바로 비밀번호 변경 화면이 떠요. 거기서 진짜 비밀번호로 바꾸시면 됩니다.
+                    """)
+                
+                st.markdown("---")
+                st.markdown("##### 🛠️ SQL 자동 생성 도구")
+                
+                reset_school = st.text_input("🏫 학교 이름", key="reset_school", placeholder="예: 한국초등학교")
+                reset_name = st.text_input("교사 성함", key="reset_name", placeholder="예: 김지훈")
+                reset_new_pw = st.text_input("새 임시 비밀번호 (8~16자)", key="reset_new_pw", 
+                                              placeholder="예: temp1234", type="password")
+                
+                if st.button("🔧 SQL 코드 생성", key="generate_sql"):
+                    if not reset_school or not reset_name:
+                        st.error("❌ 학교명과 교사 성함을 모두 입력해 주세요.")
+                    elif not (8 <= len(reset_new_pw) <= 16):
+                        st.error("❌ 임시 비밀번호는 8자~16자여야 합니다.")
+                    else:
+                        # SQL Injection 방어: 작은따옴표 이스케이프
+                        safe_school = reset_school.replace("'", "''")
+                        safe_name = reset_name.replace("'", "''")
+                        new_hash = make_hash(reset_new_pw)
+                        
+                        generated_sql = f"""UPDATE users 
+SET password_hash = '{new_hash}' 
+WHERE role = 'teacher' 
+  AND school = '{safe_school}' 
+  AND name = '{safe_name}';"""
+                        
+                        st.success("✅ SQL 생성 완료! 아래 코드를 복사해서 Supabase SQL Editor에 붙여넣으세요.")
+                        st.code(generated_sql, language="sql")
+                        
+                        st.info(f"""
+                        📝 **요약**
+                        - 학교: `{reset_school}`
+                        - 교사: `{reset_name}`
+                        - 새 임시 비번: `{reset_new_pw}`
+                        
+                        ⚠️ SQL 실행 후 위 탭에서 새 비번으로 로그인하시면 됩니다.
+                        """)
 
 elif st.session_state.login_user_id and st.session_state.login_role == "teacher":
     teacher_school = st.session_state.login_user_school
@@ -721,13 +794,87 @@ elif st.session_state.login_user_id and st.session_state.login_role == "teacher"
     # ===== ③번: 학급 기본 α 설정 UI =====
     with st.expander("⚙️ **학급 EMA 민감도 설정** (전체 학생 기본값)", expanded=False):
         current_alpha = get_class_alpha(teacher_school, teacher_grade, teacher_room)
+        
         st.markdown(f"""
-        - **α 값이란?** 새 점수를 얼마나 빨리 반영할지 결정합니다.
-        - **현재 학급 기본값: `{current_alpha}`**
-        - 높을수록 (예: 0.8) → 최근 변화에 민감
-        - 낮을수록 (예: 0.3) → 안정적, 노이즈 완충
+        ### 🎚️ α(알파) 값이란?
+        
+        학생이 매주 답한 점수를 **얼마나 빨리 반영할지** 결정하는 숫자예요.  
+        (현재 학급 기본값: **`{current_alpha}`**)
+        
+        ---
+        
+        #### 📊 쉽게 이해하기 — "이번 주 점수 vs 누적 점수의 비율"
+        
+        설문 점수 계산은 이렇게 돼요:
+        
+        > **최종 점수 = (이번 주 점수 × α) + (지난 주까지의 누적 점수 × (1−α))**
         """)
-        new_alpha = st.slider("학급 기본 α", 0.1, 0.9, float(current_alpha), 0.05)
+        
+        col_low, col_mid, col_high = st.columns(3)
+        with col_low:
+            st.markdown("""
+            <div style='padding:16px; background:linear-gradient(135deg,#DBEAFE,#E0F2FE); border-radius:14px; height:240px;'>
+                <h4 style='margin:0; color:#1E40AF;'>🐢 낮은 α (0.1 ~ 0.3)</h4>
+                <p style='font-size:0.9rem; margin-top:8px; color:#1E3A8A;'>
+                <b>안정 우선형</b><br><br>
+                ✅ 변화에 둔감<br>
+                ✅ 일시적 기분 무시<br>
+                ❌ 위기 신호 늦게 감지<br><br>
+                <i>"오늘 하루 기분만으로 평가하지 말자"</i>
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_mid:
+            st.markdown("""
+            <div style='padding:16px; background:linear-gradient(135deg,#FEF3C7,#FED7AA); border-radius:14px; height:240px;'>
+                <h4 style='margin:0; color:#92400E;'>⚖️ 중간 α (0.4 ~ 0.7)</h4>
+                <p style='font-size:0.9rem; margin-top:8px; color:#78350F;'>
+                <b>균형형 (권장)</b><br><br>
+                ✅ 변화도 감지<br>
+                ✅ 노이즈도 완충<br>
+                ✅ 일반적인 학급에 적합<br><br>
+                <i>"적당히 빠르게,<br>적당히 신중하게"</i>
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_high:
+            st.markdown("""
+            <div style='padding:16px; background:linear-gradient(135deg,#FECACA,#FCA5A5); border-radius:14px; height:240px;'>
+                <h4 style='margin:0; color:#991B1B;'>🐇 높은 α (0.7 ~ 0.9)</h4>
+                <p style='font-size:0.9rem; margin-top:8px; color:#7F1D1D;'>
+                <b>민감 우선형</b><br><br>
+                ✅ 위기 빠르게 감지<br>
+                ✅ 작은 변화도 포착<br>
+                ❌ 일시적 변동에 흔들림<br><br>
+                <i>"한 번이라도 안 좋으면<br>바로 신호 받자"</i>
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown(f"""
+        ---
+        
+        #### 💡 예시로 이해하기
+        
+        지난 주까지 학생의 누적 점수가 **2.0** 이었고, 이번 주 점수가 **3.0** 이라고 가정해볼게요:
+        
+        | α 값 | 계산 | 최종 점수 |
+        |------|------|----------|
+        | **α = 0.3** (낮음) | 3.0×0.3 + 2.0×0.7 = | **2.30** (변화 작음) |
+        | **α = 0.6** (중간, 기본값) | 3.0×0.6 + 2.0×0.4 = | **2.60** (균형) |
+        | **α = 0.9** (높음) | 3.0×0.9 + 2.0×0.1 = | **2.90** (이번 주 거의 그대로) |
+        
+        > **💼 추천 사용 시나리오**
+        > - **학기 초**: 0.5~0.6 (균형) — 학생 패턴을 파악 중
+        > - **위기 감지가 중요한 시기 (시험·학년말)**: 0.7~0.8 (높음)
+        > - **변동이 잦은 학급 (예: 친구 관계 변화 多)**: 0.3~0.4 (낮음)
+        """)
+        
+        st.markdown("---")
+        new_alpha = st.slider(
+            f"🎯 학급 기본 α 설정 (현재값: {current_alpha})", 
+            0.1, 0.9, float(current_alpha), 0.05
+        )
         if st.button("💾 학급 기본값 저장"):
             cursor = conn.cursor()
             cursor.execute("""INSERT INTO class_settings (school, grade, room, default_alpha) 
@@ -817,14 +964,23 @@ elif st.session_state.login_user_id and st.session_state.login_role == "teacher"
                 current_custom = target_student['custom_alpha']
                 class_alpha = get_class_alpha(teacher_school, teacher_grade, teacher_room)
                 
+                with st.expander("ℹ️ 개별 α는 언제 쓰나요?"):
+                    st.markdown("""
+                    학급 기본값과 다른 α를 적용하고 싶을 때 사용해요.
+                    
+                    - 🐇 **개별 α를 더 높게**: 이 학생은 평소 감정 표현이 작아서 작은 변화도 빠르게 잡고 싶을 때
+                    - 🐢 **개별 α를 더 낮게**: 이 학생은 변동이 잦아서 일시적 기복을 완충하고 싶을 때
+                    - ⚖️ **체크 해제**: 학급 기본값으로 자동 복귀
+                    """)
+                
                 if pd.notna(current_custom):
-                    st.info(f"현재 개별 α: **{current_custom}** (학급 기본값 `{class_alpha}` 대신 적용 중)")
+                    st.info(f"🎯 현재 개별 α: **{current_custom}** (학급 기본값 `{class_alpha}` 대신 적용 중)")
                 else:
-                    st.info(f"현재 학급 기본값 적용: **{class_alpha}**")
+                    st.info(f"🎯 현재 학급 기본값 적용: **{class_alpha}**")
                 
                 use_custom = st.checkbox("이 학생에게 개별 α 적용", value=pd.notna(current_custom))
                 if use_custom:
-                    custom_val = st.slider("개별 α 값", 0.1, 0.9, 
+                    custom_val = st.slider("개별 α 값 (낮을수록 안정, 높을수록 민감)", 0.1, 0.9, 
                                             float(current_custom) if pd.notna(current_custom) else float(class_alpha), 
                                             0.05, key=f"custom_alpha_{selected_student_id}")
                     if st.button("💾 개별 α 저장"):
