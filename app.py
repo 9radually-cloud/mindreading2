@@ -98,56 +98,362 @@ if "survey_responses" not in st.session_state: st.session_state.survey_responses
 if "survey_completed" not in st.session_state: st.session_state.survey_completed = False
 
 # ==========================================
-# 2. 모던 스타일 CSS (반응형 여백 및 디자인 고도화)
-# ==========================================
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght=400;600;800&display=swap');
-    html, body, [data-testid="stAppViewContainer"] {
-        background-color: #F3F4F6;
-        font-family: 'Pretendard', sans-serif;
+    /* ========== 폰트 로딩 ========== */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+    
+    /* ========== 전역 배경 (애니메이션 그라데이션) ========== */
+    html, body, [data-testid="stAppViewContainer"], .stApp {
+        background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe) !important;
+        background-size: 400% 400% !important;
+        animation: gradientShift 18s ease infinite !important;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
-    .block-container { padding: 2rem 5% !important; max-width: 100% !important; }
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* 헤더 투명 처리 */
+    [data-testid="stHeader"] {
+        background: transparent !important;
+    }
+    
+    /* ========== 메인 컨테이너 여백 ========== */
+    .block-container { 
+        padding: 2rem 5% !important; 
+        max-width: 100% !important; 
+    }
     @media (min-width: 768px) {
-        .block-container { padding: 3rem 15% !important; max-width: 90% !important; }
+        .block-container { 
+            padding: 3rem 12% !important; 
+            max-width: 95% !important; 
+        }
     }
     
+    /* ========== 카드 (Glassmorphism 유리 질감) ========== */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #FFFFFF !important;
-        border: 1px solid #E5E7EB !important;
-        border-radius: 16px !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
-        padding: 2rem !important;
-        margin-top: 1rem !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 24px !important;
+        box-shadow: 
+            0 20px 60px -10px rgba(102, 126, 234, 0.3),
+            0 8px 25px -5px rgba(118, 75, 162, 0.15) !important;
+        padding: 2.5rem !important;
+        margin-top: 1.2rem !important;
+        transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+    }
+    
+    div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 
+            0 25px 70px -10px rgba(102, 126, 234, 0.4),
+            0 10px 30px -5px rgba(118, 75, 162, 0.2) !important;
     }
     
     @media (max-width: 768px) {
-        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 1.2rem !important; }
+        div[data-testid="stVerticalBlockBorderWrapper"] { 
+            padding: 1.5rem !important; 
+            border-radius: 20px !important;
+        }
     }
     
-    /* 모든 입력창 흰색 바탕 강제 스크립트 */
+    /* ========== 제목 (h1, h2, h3) ========== */
+    h1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+        font-weight: 800 !important;
+        font-size: 2.2rem !important;
+        letter-spacing: -0.02em !important;
+        text-align: center !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    h2, h3 {
+        color: #1F2937 !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.01em !important;
+    }
+    
+    /* ========== 입력창 ========== */
     div[data-testid="stTextInput"] input, 
     div[data-baseweb="select"] > div,
     div[data-testid="stNumberInput"] input {
         background-color: #FFFFFF !important;
-        border: 2px solid #D1D5DB !important;
+        border: 2px solid #E5E7EB !important;
+        border-radius: 12px !important;
         color: #1F2937 !important;
+        font-size: 1rem !important;
+        padding: 10px 14px !important;
+        transition: all 0.2s ease !important;
     }
     
+    div[data-testid="stTextInput"] input:focus, 
+    div[data-testid="stNumberInput"] input:focus {
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important;
+        outline: none !important;
+    }
+    
+    /* ========== 설문 질문 텍스트 ========== */
     .question-text { 
         font-size: 1.4rem !important; 
-        font-weight: 800; 
+        font-weight: 800 !important;
         line-height: 1.8 !important; 
-        color: #1F2937; 
-        margin-bottom: 20px; 
-        text-align: center; 
-        word-break: keep-all; 
+        color: #1F2937 !important;
+        margin-bottom: 24px !important;
+        text-align: center !important;
+        word-break: keep-all !important;
     }
     
-    div.row-widget.stRadio > div { gap: 14px; margin-bottom: 20px; padding: 20px; background-color: #F9FAFB; border: 2px solid #E5E7EB; border-radius: 12px; }
-    label { line-height: 1.8 !important; font-size: 1.1rem !important; color: #374151; font-weight: 600; word-break: keep-all; white-space: pre-wrap !important; }
-    .stButton>button { width: 100%; font-size: 1.2rem !important; font-weight: 600 !important; padding: 12px !important; border-radius: 10px !important; }
+    /* ========== 라디오 선택지 (선택 카드 스타일) ========== */
+    div.row-widget.stRadio > div { 
+        gap: 14px !important; 
+        margin-bottom: 20px !important; 
+        padding: 24px !important;
+        background: linear-gradient(135deg, #F8F9FF 0%, #FDF4FF 100%) !important;
+        border: 2px solid rgba(102, 126, 234, 0.15) !important;
+        border-radius: 18px !important;
+    }
+    
+    div.row-widget.stRadio label {
+        background: #FFFFFF !important;
+        border: 2px solid #E5E7EB !important;
+        border-radius: 14px !important;
+        padding: 16px 20px !important;
+        transition: all 0.25s ease !important;
+        cursor: pointer !important;
+    }
+    
+    div.row-widget.stRadio label:hover {
+        border-color: #667eea !important;
+        background: #F8F9FF !important;
+        transform: translateX(4px) !important;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
+    }
+    
+    label { 
+        line-height: 1.8 !important; 
+        font-size: 1.1rem !important; 
+        color: #374151 !important;
+        font-weight: 600 !important;
+        word-break: keep-all !important;
+        white-space: pre-wrap !important;
+    }
+    
+    /* ========== 버튼 (그라데이션 + 호버 애니메이션) ========== */
+    .stButton > button {
+        width: 100% !important;
+        font-size: 1.15rem !important;
+        font-weight: 700 !important;
+        padding: 14px 20px !important;
+        border-radius: 14px !important;
+        border: none !important;
+        background: linear-gradient(135deg, #A8B5FF 0%, #C3A8E8 100%) !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(102, 126, 234, 0.3) !important;
+        transition: all 0.25s ease !important;
+        letter-spacing: -0.01em !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 22px rgba(102, 126, 234, 0.4) !important;
+        background: linear-gradient(135deg, #8B9BFF 0%, #B391DD 100%) !important;
+    }
+    
+    .stButton > button:active {
+        transform: translateY(0) !important;
+    }
+    
+    /* primary 버튼 (강조 - 민트 그라데이션) */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #43E97B 0%, #38F9D7 100%) !important;
+        box-shadow: 0 4px 14px rgba(67, 233, 123, 0.4) !important;
+        color: #064E3B !important;
+    }
+    
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #2DD86A 0%, #28E5C0 100%) !important;
+        box-shadow: 0 8px 22px rgba(67, 233, 123, 0.5) !important;
+    }
+    
+    /* ========== 진행 바 ========== */
+    div[data-testid="stProgress"] > div > div > div {
+        background: linear-gradient(90deg, #667eea 0%, #f093fb 50%, #4facfe 100%) !important;
+        border-radius: 10px !important;
+        height: 12px !important;
+    }
+    
+    div[data-testid="stProgress"] > div > div {
+        background-color: rgba(255, 255, 255, 0.4) !important;
+        border-radius: 10px !important;
+        height: 12px !important;
+    }
+    
+    /* ========== 사이드바 ========== */
+    [data-testid="stSidebar"] {
+        background: rgba(255, 255, 255, 0.92) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    [data-testid="stSidebar"] h1 {
+        font-size: 1.4rem !important;
+    }
+    
+    /* ========== 알림 박스 (success, info, warning, error) ========== */
+    div[data-testid="stAlert"] {
+        border-radius: 16px !important;
+        border: none !important;
+        padding: 16px 20px !important;
+        backdrop-filter: blur(10px) !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    /* ========== 데이터 프레임 ========== */
+    div[data-testid="stDataFrame"] {
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    /* ========== 캡션 텍스트 ========== */
+    div[data-testid="stCaptionContainer"] {
+        text-align: center !important;
+        color: #6B7280 !important;
+        font-weight: 600 !important;
+    }
+    
+    /* ========== Expander ========== */
+    div[data-testid="stExpander"] {
+        border-radius: 16px !important;
+        border: 1px solid rgba(102, 126, 234, 0.2) !important;
+        background: rgba(255, 255, 255, 0.7) !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    
+    /* ========== shadcn 카드 컴포넌트 ========== */
+    [data-testid="stHorizontalBlock"] {
+        gap: 1rem !important;
+    }
+    
+    /* ========== 이모지 아이콘 박스 (설문 화면용) ========== */
+    .emoji-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 110px;
+        height: 110px;
+        margin: 0 auto 24px auto;
+        background: linear-gradient(135deg, #FEF3FF 0%, #E0E7FF 100%);
+        border-radius: 50%;
+        font-size: 4.2rem;
+        box-shadow: 
+            0 10px 30px rgba(102, 126, 234, 0.25),
+            inset 0 -4px 10px rgba(118, 75, 162, 0.1);
+        animation: floatBadge 3s ease-in-out infinite;
+    }
+    
+    @keyframes floatBadge {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+    
+    /* ========== 환영 헤더 ========== */
+    .hero-header {
+        text-align: center;
+        padding: 28px 20px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 100%);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    .hero-header .hero-emoji {
+        font-size: 3.5rem;
+        margin-bottom: 12px;
+        display: inline-block;
+        animation: waveEmoji 2.5s ease-in-out infinite;
+    }
+    
+    @keyframes waveEmoji {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(-10deg); }
+        75% { transform: rotate(10deg); }
+    }
+    
+    .hero-header h2 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+        font-size: 1.8rem;
+        margin: 0;
+    }
+    
+    .hero-header p {
+        color: #6B7280;
+        font-size: 1rem;
+        margin-top: 8px;
+        font-weight: 500;
+    }
+    
+    /* ========== 완료 화면 카드 ========== */
+    .completion-card {
+        text-align: center;
+        padding: 40px 30px;
+        background: linear-gradient(135deg, #FEF3FF 0%, #E0E7FF 50%, #DBEAFE 100%);
+        border-radius: 28px;
+        box-shadow: 0 20px 50px rgba(102, 126, 234, 0.25);
+        border: 2px solid rgba(255, 255, 255, 0.6);
+        margin-top: 20px;
+    }
+    
+    .completion-card .big-emoji {
+        font-size: 5rem;
+        margin-bottom: 16px;
+        display: inline-block;
+        animation: bounceEmoji 1.5s ease infinite;
+    }
+    
+    @keyframes bounceEmoji {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+    
+    .completion-card .message {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 18px;
+        padding: 24px 20px;
+        margin-top: 20px;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #4C1D95;
+        line-height: 1.7;
+        box-shadow: inset 0 2px 8px rgba(102, 126, 234, 0.1);
+    }
+    
+    /* ========== 모바일 최적화 ========== */
+    @media (max-width: 768px) {
+        h1 { font-size: 1.6rem !important; }
+        .question-text { font-size: 1.15rem !important; }
+        .emoji-badge { width: 90px; height: 90px; font-size: 3.4rem; }
+        .stButton > button { font-size: 1rem !important; padding: 12px !important; }
+        label { font-size: 1rem !important; }
+    }
+    
     </style>
 """, unsafe_allow_html=True)
 
@@ -182,7 +488,13 @@ else:
 # 🧑‍🎓 4. 학생용 채널
 # ==========================================
 if st.session_state.login_user_id is None and 'app_mode' in locals() and app_mode == "🧑‍🎓 학생용 채널":
-    ui.card(title="오늘 하루 나의 기분은?", content="여러분의 마음을 기록하는 공간입니다.", description="선생님이 여러분의 학교생활에 참고하기 위한 질문들이에요").render()
+    st.markdown("""
+    <div class="hero-header">
+        <div class="hero-emoji">🌈</div>
+        <h2>오늘 하루 나의 기분은?</h2>
+        <p>여러분의 마음을 기록하는 안전한 공간이에요 💖</p>
+    </div>
+""", unsafe_allow_html=True)
     
     st.divider()
     _, center_col, _ = st.columns([1, 8, 1])
@@ -265,9 +577,26 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
     else:
         if st.session_state.survey_completed:
             st.balloons()
-            st.title(f"🌈 {st.session_state.login_user_name} 친구, 고생했어요!")
+            st.markdown(f"""
+                <div class="hero-header">
+                    <div class="hero-emoji">🌈</div>
+                    <h2>{st.session_state.login_user_name} 친구, 정말 고생했어요!</h2>
+                    <p>마음을 솔직하게 들려줘서 고마워요 💝</p>
+                </div>
+            """, unsafe_allow_html=True)
+
             random_message = random.choice(ENCOURAGING_MESSAGES)
-            st.success(f"### 🎉 마음 전달이 완료되었습니다!\n\n---\n\n## 💌 **{random_message}**\n\n---\n\n선생님께서 여러분의 소중한 마음을 확인하실 거예요.\n\n안전을 위해 왼쪽의 **[로그아웃]** 버튼을 눌러 창을 닫아주세요.")
+            st.markdown(f"""
+                <div class="completion-card">
+                    <div class="big-emoji">🎉</div>
+                    <h3 style="color:#4C1D95; font-weight:800; margin:0;">마음 전달이 완료되었어요!</h3>
+                    <div class="message">💌 {random_message}</div>
+                    <p style="color:#6B7280; font-size:0.95rem; margin-top:20px; font-weight:500;">
+                        선생님께서 소중한 마음을 확인하실 거예요.<br>
+                        안전을 위해 왼쪽의 <b>[로그아웃]</b> 버튼을 눌러주세요.
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
             
         else:
             st.title(f"🌈 {st.session_state.login_user_name} 친구, 환영해요!")
@@ -301,7 +630,7 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
                 st.caption(f"총 {total_steps}개 질문 중 {step + 1}번째 질문")
                 
                 with st.container(border=True):
-                    st.markdown(f"<div style='text-align: center; font-size: 4rem; margin-bottom: 20px;'>{data['icon']}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='emoji-badge'>{data['icon']}</div>", unsafe_allow_html=True)
                     st.markdown(f"<p class='question-text'>{data['question']}</p>", unsafe_allow_html=True)
                     
                     current_val = st.session_state.survey_responses.get(key, 0)
