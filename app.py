@@ -867,7 +867,7 @@ elif st.session_state.login_user_id and st.session_state.login_role == "teacher"
                 ✅ 변화도 감지<br>
                 ✅ 노이즈도 완충<br>
                 ✅ 일반적인 학급에 적합<br><br>
-                <i>"적당히 빠르게,<br>적당히 신중하게"</i>
+                <i>"적당히 빠르게, 적당히 신중하게"</i>
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -880,7 +880,7 @@ elif st.session_state.login_user_id and st.session_state.login_role == "teacher"
                 ✅ 위기 빠르게 감지<br>
                 ✅ 작은 변화도 포착<br>
                 ❌ 일시적 변동에 흔들림<br><br>
-                <i>"한 번이라도 안 좋으면<br>바로 신호 받자"</i>
+                <i>"한 번이라도 안 좋으면 바로 신호 받자"</i>
                 </p>
             </div>
             """, unsafe_allow_html=True)
