@@ -182,9 +182,8 @@ st.markdown("""
         letter-spacing: -0.01em !important;
     }
     
-    /* ========== 입력창 ========== */
+    /* ========== 입력창 (텍스트, 숫자) ========== */
     div[data-testid="stTextInput"] input, 
-    div[data-baseweb="select"] > div,
     div[data-testid="stNumberInput"] input {
         background-color: #FFFFFF !important;
         border: 2px solid #E5E7EB !important;
@@ -195,6 +194,35 @@ st.markdown("""
         transition: all 0.2s ease !important;
     }
     
+    /* ========== Selectbox (드롭다운) ========== */
+    div[data-baseweb="select"] > div {
+        background-color: #FFFFFF !important;
+        border: 2px solid #E5E7EB !important;
+        border-radius: 12px !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    /* 드롭다운 안의 선택된 값 글자 (검정색 강제) */
+    div[data-baseweb="select"] div[data-baseweb="select-control"] *,
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] div {
+        color: #1F2937 !important;
+    }
+    
+    /* 드롭다운 펼쳤을 때 옵션 목록 */
+    ul[role="listbox"] {
+        background-color: #FFFFFF !important;
+        border-radius: 12px !important;
+    }
+    
+    ul[role="listbox"] li {
+        color: #1F2937 !important;
+        background-color: #FFFFFF !important;
+    }
+    
+    ul[role="listbox"] li:hover {
+        background-color: #F3F4F6 !important;
+    }
     div[data-testid="stTextInput"] input:focus, 
     div[data-testid="stNumberInput"] input:focus {
         border-color: #667eea !important;
