@@ -709,20 +709,46 @@ elif st.session_state.login_user_id is None and 'app_mode' in locals() and app_m
             
             with tab3:
                 st.markdown("""
-                #### 🔐 보안 안내
+                <div style="background:linear-gradient(135deg,#FEF3C7,#FED7AA); padding:20px 24px; border-radius:16px; border-left:6px solid #D97706; margin-bottom:16px;">
+                    <h3 style="margin:0; color:#92400E; font-weight:800;">⚠️ 시스템 관리자 전용 화면</h3>
+                    <p style="margin-top:10px; color:#78350F; font-size:1rem; line-height:1.6;">
+                    이 화면은 <b>시스템 관리자(데이터베이스 접근 권한 보유자)</b>만 사용할 수 있어요.<br>
+                    일반 교사는 비밀번호 분실 시 <b>시스템 관리자에게 직접 연락</b>해 주세요.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                교사 비밀번호 초기화는 **시스템 관리자(개발자)만** 수행할 수 있습니다.  
-                외부 침입을 막기 위한 안전장치입니다.
+                # ===== 일반 교사용: 비번 분실 신고 안내 =====
+                with st.expander("🙋 **나는 비번을 잊은 일반 교사예요. 어떻게 해야 하나요?**"):
+                    st.markdown("""
+                    ### 📞 비밀번호 분실 시 처리 절차
+                    
+                    **1️⃣ 시스템 관리자에게 연락하세요**
+                    - 본인의 **학교명, 성함, 담당 학년/반**을 알려주세요
+                    - 연락 수단: 직접 만남 > 학교 메신저 > 카톡 1:1
+                    
+                    **2️⃣ 관리자가 임시 비번을 전달해주면 → 로그인**
+                    
+                    **3️⃣ 로그인 직후 비번 변경 화면이 자동으로 떠요**
+                    - 거기서 본인이 원하는 새 비번으로 변경하시면 끝!
+                    
+                    ---
+                    
+                    > 💡 **왜 관리자만 처리할 수 있나요?**  
+                    > 외부 침입자가 단순히 교사 이름만 알아내서 비번을 바꿔버리는 일을 막기 위해서예요.  
+                    > 데이터베이스 직접 접근 권한이 있는 관리자만 비번을 변경할 수 있게 설계되어 있습니다.
+                    """)
                 
-                ---
+                st.markdown("---")
                 
-                ### 📌 본인이 시스템 관리자인 경우
+                st.markdown("""
+                ### 🛠️ 시스템 관리자: 비번 초기화 도구
                 
                 아래에 정보를 입력하면 **데이터베이스에 붙여넣을 SQL 코드**가 자동으로 만들어져요.  
-                이 SQL을 Supabase 대시보드에서 실행하면 비밀번호가 초기화됩니다.
+                이 SQL을 Supabase 대시보드에서 실행해야 비밀번호가 실제로 초기화됩니다.
                 """)
                 
-                with st.expander("📖 **단계별 친절한 가이드 (처음이라면 꼭 읽어주세요)**", expanded=False):
+                with st.expander("📖 **관리자 전용: 단계별 SQL 실행 가이드 (처음이라면 꼭 읽어주세요)**", expanded=False):
                     st.markdown("""
                     **1️⃣ 아래에 학교명, 교사 성함, 새 임시 비번 입력**
                     
@@ -777,7 +803,15 @@ WHERE role = 'teacher'
                         - 교사: `{reset_name}`
                         - 새 임시 비번: `{reset_new_pw}`
                         
-                        ⚠️ SQL 실행 후 위 탭에서 새 비번으로 로그인하시면 됩니다.
+                        ⚠️ SQL 실행 후 해당 교사에게 새 비번으로 로그인하라고 전달하세요.
+                        """)
+                        
+                        st.warning("""
+                        🔒 **임시 비번 전달 시 보안 수칙**
+                        - ✅ 직접 만나서 알려주기 (가장 안전)
+                        - ✅ 학교 메신저 또는 카톡 1:1
+                        - ❌ 단톡방 또는 공개된 공간 금지
+                        - ⚠️ 해당 교사에게 **로그인 직후 반드시 비번을 변경**하라고 안내해 주세요
                         """)
 
 elif st.session_state.login_user_id and st.session_state.login_role == "teacher":
