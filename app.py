@@ -303,7 +303,7 @@ st.markdown("""
     ul[role="listbox"] li:hover { background-color: var(--green-light) !important; color: var(--ink-strong) !important; }
     
     /* ============================================================
-       ⭐⭐⭐ 핵심 1: 질문 텍스트 — 흰 둥근 네모 안에 크고 또렷하게
+       ⭐⭐⭐ 핵심 1: 질문 텍스트 — 흰 둥근 네모, 부모 풀 폭
        ============================================================ */
     .question-text,
     p.question-text,
@@ -312,7 +312,7 @@ st.markdown("""
         font-weight: 800 !important; 
         line-height: 1.6 !important; 
         color: var(--ink-strong) !important;
-        margin: 16px auto 28px auto !important;
+        margin: 16px 0 28px 0 !important;
         text-align: center !important; 
         word-break: keep-all !important;
         letter-spacing: -0.02em !important;
@@ -320,31 +320,30 @@ st.markdown("""
         border: 1.5px solid var(--border-soft) !important;
         border-radius: 20px !important;
         padding: 32px 36px !important;
-        max-width: 900px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
         box-shadow: 0 4px 16px rgba(45, 59, 42, 0.06) !important;
     }
     
     /* ============================================================
-       ⭐⭐⭐ 핵심 2: 답변 라디오 — 흰 둥근 네모, 질문과 가로 폭 일치
+       ⭐⭐⭐ 핵심 2: 답변 라디오 — 질문과 동일한 폭(부모 카드 풀 폭)
        
        Streamlit 라디오 구조:
-       <div data-testid="stRadio">
-         <label>(위젯 라벨 — collapsed로 숨김)
-         <div role="radiogroup">  ← 옵션 컨테이너
-           <label data-baseweb="radio">  ← 각 옵션 (흰 카드)
+       <div data-testid="stRadio">             ← 풀 폭
+         <label>(위젯 라벨, collapsed로 숨김)
+         <div role="radiogroup">                ← 풀 폭 컨테이너
+           <label data-baseweb="radio">         ← 풀 폭 흰 카드
              <div>(라디오 동그라미)
              <div>(텍스트)
-       
-       선택된 라벨은 input[type=radio]가 checked 됨
        ============================================================ */
     
-    /* stRadio 위젯 자체를 질문과 동일 max-width로 가운데 정렬 */
+    /* stRadio 위젯 — 부모 폭 풀 사용 (질문과 동일) */
     div[data-testid="stRadio"] {
-        max-width: 900px !important;
-        margin: 0 auto 28px auto !important;
+        width: 100% !important;
+        margin: 0 0 28px 0 !important;
     }
     
-    /* 라디오 옵션 컨테이너 — 배경 투명, 풀 폭 */
+    /* 라디오 옵션 컨테이너 — 풀 폭 세로 정렬 */
     div[data-testid="stRadio"] > div[role="radiogroup"],
     div[data-testid="stRadio"] > div:not([data-testid]),
     div.row-widget.stRadio > div { 
@@ -358,18 +357,19 @@ st.markdown("""
         flex-direction: column !important;
     }
     
-    /* 각 답변 라벨 = 흰 카드 (둥근 네모) */
+    /* 각 답변 라벨 = 흰 카드 (질문과 동일한 폭, 동일한 좌우 정렬) */
     div[data-testid="stRadio"] label[data-baseweb="radio"],
     div.row-widget.stRadio label {
         background: #FFFFFF !important; 
         border: 2px solid var(--border-soft) !important;
-        border-radius: 16px !important; 
-        padding: 22px 28px 22px 24px !important;
+        border-radius: 20px !important; 
+        padding: 22px 36px !important;
         transition: all 0.2s ease !important; 
         cursor: pointer !important;
         box-shadow: 0 3px 12px rgba(45, 59, 42, 0.06) !important;
         min-height: 80px !important;
         width: 100% !important;
+        box-sizing: border-box !important;
         margin: 0 !important;
         display: flex !important;
         align-items: center !important;
@@ -386,13 +386,12 @@ st.markdown("""
         transform: translateY(-1px) !important;
     }
     
-    /* ⭐ 선택된 라벨 = 강한 강조 (input:checked의 부모 라벨)
-       Streamlit BaseWeb는 input[type=radio]를 라벨 안에 둠 */
+    /* ⭐ 선택된 라벨 = 강한 강조 */
     div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked),
     div.row-widget.stRadio label:has(input:checked) {
-        border: 3px solid var(--green) !important;
+        border: 2.5px solid var(--green) !important;
         background: var(--green-light) !important;
-        box-shadow: 0 8px 24px rgba(107, 190, 90, 0.30) !important;
+        box-shadow: 0 8px 24px rgba(107, 190, 90, 0.28) !important;
         transform: translateY(-1px) !important;
     }
     /* 선택된 라벨의 텍스트 — 더 진하고 굵게 */
@@ -403,24 +402,51 @@ st.markdown("""
         font-weight: 800 !important;
     }
     
-    /* 라디오 동그라미(첫번째 자식) — 크기 키우고 색 강조 */
+    /* ============================================================
+       라디오 동그라미 — 표준 라디오 모양 (도넛: 바깥 원 + 안 점)
+       ============================================================ */
+    /* 동그라미 컨테이너 (첫번째 자식) */
     div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {
         flex-shrink: 0 !important;
         background-color: transparent !important;
-        width: 26px !important;
-        height: 26px !important;
+        width: 24px !important;
+        height: 24px !important;
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
-    /* BaseWeb radio dot 내부 원 (선택 안된 상태) — 녹색 보더 */
+    /* 바깥 원 — 항상 회색 보더 (선택 상태 무관) */
     div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child > div {
-        border-color: var(--green) !important;
-        border-width: 2.5px !important;
-        width: 26px !important;
-        height: 26px !important;
+        width: 22px !important;
+        height: 22px !important;
+        border: 2px solid #C4C8C0 !important;
+        border-radius: 50% !important;
+        background-color: #FFFFFF !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        display: block !important;
     }
-    /* 선택된 동그라미 채움 (BaseWeb은 내부에 점을 그림) — 색 강제 */
+    /* hover 시 바깥 원 보더만 살짝 진해짐 */
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:hover > div:first-child > div {
+        border-color: var(--green-soft) !important;
+    }
+    /* 선택된 상태: 바깥 원은 녹색 보더 + 안에 점 */
     div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) > div:first-child > div {
-        background-color: var(--green) !important;
         border-color: var(--green) !important;
+        background-color: #FFFFFF !important;
+    }
+    /* 안쪽 점 — ::after 의사 요소로 그림 */
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) > div:first-child > div::after {
+        content: '' !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 12px !important;
+        height: 12px !important;
+        border-radius: 50% !important;
+        background-color: var(--green) !important;
     }
     
     /* 텍스트 wrapper(마지막 자식) — 왼쪽 정렬 */
@@ -432,7 +458,7 @@ st.markdown("""
         text-align: left !important;
     }
     
-    /* 답변 텍스트 자체 — 왼쪽 정렬, 크고 진하게 */
+    /* 답변 텍스트 — 왼쪽 정렬, 크고 진하게 */
     div[data-testid="stRadio"] label[data-baseweb="radio"] p,
     div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"],
     div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p { 
