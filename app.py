@@ -303,116 +303,107 @@ st.markdown("""
     ul[role="listbox"] li:hover { background-color: var(--green-light) !important; color: var(--ink-strong) !important; }
     
     /* ============================================================
-       ⭐⭐⭐ 핵심 1: 질문 텍스트 — 크고 또렷하게, 가운데
+       ⭐⭐⭐ 핵심 1: 질문 텍스트 — 흰 둥근 네모 안에 크고 또렷하게
        ============================================================ */
     .question-text,
     p.question-text,
     div.question-text { 
-        font-size: 2rem !important; 
+        font-size: 1.85rem !important; 
         font-weight: 800 !important; 
         line-height: 1.6 !important; 
         color: var(--ink-strong) !important;
-        margin: 16px auto 40px auto !important;
+        margin: 16px auto 28px auto !important;
         text-align: center !important; 
         word-break: keep-all !important;
         letter-spacing: -0.02em !important;
-        padding: 0 1.5rem !important;
+        background: #FFFFFF !important;
+        border: 1.5px solid var(--border-soft) !important;
+        border-radius: 20px !important;
+        padding: 32px 36px !important;
         max-width: 900px !important;
+        box-shadow: 0 4px 16px rgba(45, 59, 42, 0.06) !important;
     }
     
     /* ============================================================
-       ⭐⭐⭐ 핵심 2: 답변 라디오 영역 — 연녹 배경존 + 강력 셀렉터
+       ⭐⭐⭐ 핵심 2: 답변 라디오 — 흰 둥근 네모만, 가운데 정렬
        
        Streamlit 라디오 구조:
-       <div class="row-widget stRadio">
-         <div>  ← 옵션들 컨테이너 (여기에 연녹 zone)
+       <div data-testid="stRadio">
+         <label>(위젯 라벨 — collapsed로 숨김)
+         <div role="radiogroup">  ← 옵션 컨테이너 (배경 투명!)
            <label data-baseweb="radio">  ← 각 옵션 (흰 카드)
-             <span>  ← 라디오 동그라미
-             <div>  ← 텍스트 wrapper
-               <div data-testid="stMarkdownContainer">
-                 <p>  ← 실제 답변 텍스트
+             <div>(라디오 동그라미)
+             <div>(텍스트)
        ============================================================ */
     
-    /* 라디오 옵션들 감싸는 컨테이너 = 연녹 배경 존 */
-    div[data-testid="stRadio"] > div,
+    /* 라디오 옵션 컨테이너 — 배경 투명, 단순 정렬 */
+    div[data-testid="stRadio"] > div[role="radiogroup"],
+    div[data-testid="stRadio"] > div:not([data-testid]),
     div.row-widget.stRadio > div { 
-        gap: 18px !important; 
+        gap: 16px !important; 
         margin: 0 auto 28px auto !important;
-        padding: 28px 24px !important;
-        background: var(--green-bg) !important;
-        border: 1.5px solid var(--border-green) !important;
-        border-radius: 22px !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
         max-width: 900px !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
     
-    /* 각 답변 라벨 = 흰 카드, 가운데 정렬 */
-    div[data-testid="stRadio"] label,
-    div.row-widget.stRadio label,
-    label[data-baseweb="radio"] {
+    /* 각 답변 라벨 = 흰 카드 (둥근 네모만) */
+    div[data-testid="stRadio"] label[data-baseweb="radio"],
+    div.row-widget.stRadio label {
         background: #FFFFFF !important; 
-        border: 2px solid #FFFFFF !important;
+        border: 2px solid var(--border-soft) !important;
         border-radius: 16px !important; 
-        padding: 26px 28px !important;
+        padding: 24px 28px !important;
         transition: all 0.2s ease !important; 
         cursor: pointer !important;
-        box-shadow: 0 2px 10px rgba(45, 59, 42, 0.06) !important;
+        box-shadow: 0 3px 12px rgba(45, 59, 42, 0.06) !important;
+        min-height: 84px !important;
+        width: 100% !important;
+        /* 라벨 자체는 flex로 동그라미 + 텍스트 정렬 */
         display: flex !important;
         align-items: center !important;
-        justify-content: center !important;
-        text-align: center !important;
-        min-height: 90px !important;
-        width: 100% !important;
+        justify-content: flex-start !important;
+        gap: 16px !important;
     }
-    div[data-testid="stRadio"] label:hover,
-    div.row-widget.stRadio label:hover,
-    label[data-baseweb="radio"]:hover {
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:hover,
+    div.row-widget.stRadio label:hover {
         border-color: var(--green) !important; 
         background: #FAFFF8 !important;
         box-shadow: 0 8px 22px rgba(107, 190, 90, 0.22) !important;
         transform: translateY(-1px) !important;
     }
     
-    /* 라디오 동그라미 영역(왼쪽) - 폭 좁게, 흐트러지지 않게 */
-    div[data-testid="stRadio"] label > div:first-child,
-    label[data-baseweb="radio"] > div:first-child {
-        background-color: transparent !important;
+    /* 라디오 동그라미(첫번째 자식) — 그대로 보이도록 */
+    div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {
         flex-shrink: 0 !important;
-        margin-right: 8px !important;
-    }
-    /* 라디오 동그라미 보더 색 */
-    label[data-baseweb="radio"] > div:first-child > div,
-    div[data-testid="stRadio"] label > div:first-child > div {
-        border-color: var(--green) !important;
+        background-color: transparent !important;
     }
     
-    /* ⭐ 답변 텍스트 자체 — 모든 후손 요소까지 강제 */
-    div[data-testid="stRadio"] label *,
-    div.row-widget.stRadio label *,
-    label[data-baseweb="radio"] *,
-    label[data-baseweb="radio"] p,
-    label[data-baseweb="radio"] div,
-    label[data-baseweb="radio"] span,
-    div[data-testid="stRadio"] label p,
-    div[data-testid="stRadio"] label > div:last-child,
-    div[data-testid="stRadio"] label > div:last-child > div,
-    div[data-testid="stRadio"] label > div:last-child p { 
+    /* 텍스트 wrapper(마지막 자식) — flex로 가운데 정렬 차지 */
+    div[data-testid="stRadio"] label[data-baseweb="radio"] > div:last-child {
+        flex: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    
+    /* 답변 텍스트만 정밀 타겟 (와일드카드 X — 동그라미 보존) */
+    div[data-testid="stRadio"] label[data-baseweb="radio"] p,
+    div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"],
+    div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p { 
         line-height: 1.7 !important; 
-        font-size: 1.35rem !important; 
+        font-size: 1.3rem !important; 
         color: var(--ink-strong) !important;
         font-weight: 700 !important; 
         word-break: keep-all !important; 
         white-space: pre-wrap !important;
         text-align: center !important;
         margin: 0 !important;
-    }
-    /* 텍스트 wrapper(라벨의 두번째 div)는 가운데 정렬용 flex 차지 */
-    label[data-baseweb="radio"] > div:last-child,
-    div[data-testid="stRadio"] label > div:last-child {
-        flex: 1 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        text-align: center !important;
+        width: 100% !important;
     }
     
     label { color: var(--ink-strong) !important; font-weight: 600 !important; }
@@ -566,14 +557,20 @@ st.markdown("""
     /* ===== 반응형 ===== */
     @media (max-width: 768px) {
         h1 { font-size: 1.5rem !important; }
-        .question-text { font-size: 1.45rem !important; padding: 0 0.5rem !important; }
-        div[data-testid="stRadio"] > div,
-        div.row-widget.stRadio > div { padding: 16px 12px !important; }
-        div[data-testid="stRadio"] label,
-        div.row-widget.stRadio label,
-        label[data-baseweb="radio"] { padding: 20px 18px !important; min-height: 76px !important; }
-        div[data-testid="stRadio"] label *,
-        label[data-baseweb="radio"] * { font-size: 1.1rem !important; }
+        .question-text { 
+            font-size: 1.35rem !important; 
+            padding: 22px 20px !important;
+            border-radius: 16px !important;
+        }
+        div[data-testid="stRadio"] label[data-baseweb="radio"],
+        div.row-widget.stRadio label { 
+            padding: 18px 18px !important; 
+            min-height: 72px !important; 
+        }
+        div[data-testid="stRadio"] label[data-baseweb="radio"] p,
+        div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p { 
+            font-size: 1.08rem !important; 
+        }
         .emoji-badge { width: 80px; height: 80px; font-size: 2.8rem; }
         .stButton > button { font-size: 1rem !important; padding: 12px !important; }
         .hero-header { padding: 10px 14px; gap: 8px; }
@@ -768,7 +765,7 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
                 
                 current_val = st.session_state.survey_responses.get(key, 0)
                 default_idx = 1 if current_val == 1 else 0
-                choice = st.radio(f"choice_{key}", data["options"], index=default_idx, label_visibility="collapsed")
+                choice = st.radio(" ", data["options"], index=default_idx, label_visibility="collapsed", key=f"radio_{key}")
                 st.session_state.survey_responses[key] = 1 if choice == data["options"][1] else 0
 
             col_prev, col_blank, col_next = st.columns([1, 1, 1])
