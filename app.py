@@ -203,190 +203,262 @@ st.markdown("""
     <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
     
-    html, body, [data-testid="stAppViewContainer"], .stApp {
-        background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe) !important;
-        background-size: 400% 400% !important;
-        animation: gradientShift 18s ease infinite !important;
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    /* ============================================================
+       Elearn-inspired Calm Cream Theme
+       - 배경: 부드러운 크림 베이지
+       - 포인트: 코랄(#FF7B5A) + 다크네이비(#2D2B52) + 보조 라벤더(#7C6FE8)
+       - 카드: 깨끗한 화이트 + 부드러운 그림자
+       - 강조: 질문/답변 영역에 시선 집중 (다른 요소는 차분하게)
+       ============================================================ */
+    
+    :root {
+        --bg-main: #F5F4F1;
+        --bg-card: #FFFFFF;
+        --ink-strong: #2D2B52;
+        --ink-soft: #5C5A7A;
+        --ink-light: #9594B0;
+        --coral: #FF7B5A;
+        --coral-soft: #FFA48C;
+        --coral-light: #FFE5DC;
+        --lavender: #7C6FE8;
+        --lavender-light: #EDE9FF;
+        --teal: #4FB8B1;
+        --teal-light: #DBF1EF;
+        --border-soft: #E8E6E0;
+        --shadow-card: 0 6px 24px rgba(45, 43, 82, 0.06);
+        --shadow-hover: 0 12px 32px rgba(45, 43, 82, 0.10);
     }
-    @keyframes gradientShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
+    
+    html, body, [data-testid="stAppViewContainer"], .stApp {
+        background: var(--bg-main) !important;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        color: var(--ink-strong) !important;
     }
     [data-testid="stHeader"] { background: transparent !important; }
     
     .block-container { padding: 2rem 5% !important; max-width: 100% !important; }
     @media (min-width: 768px) {
-        .block-container { padding: 3rem 12% !important; max-width: 95% !important; }
+        .block-container { padding: 3rem 10% !important; max-width: 95% !important; }
     }
     
+    /* ===== 일반 카드 (vertical block) ===== */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        background: rgba(255, 255, 255, 0.85) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.4) !important;
-        border-radius: 24px !important;
-        box-shadow: 0 20px 60px -10px rgba(102, 126, 234, 0.3), 0 8px 25px -5px rgba(118, 75, 162, 0.15) !important;
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-soft) !important;
+        border-radius: 20px !important;
+        box-shadow: var(--shadow-card) !important;
         padding: 2.5rem !important;
         margin-top: 1.2rem !important;
-        transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+        transition: box-shadow 0.25s ease !important;
     }
     div[data-testid="stVerticalBlockBorderWrapper"]:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 25px 70px -10px rgba(102, 126, 234, 0.4), 0 10px 30px -5px rgba(118, 75, 162, 0.2) !important;
+        box-shadow: var(--shadow-hover) !important;
     }
     @media (max-width: 768px) {
-        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 1.5rem !important; border-radius: 20px !important; }
+        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 1.5rem !important; border-radius: 16px !important; }
     }
     
+    /* ===== 헤딩 — 단색 다크네이비로 가독성 확보 ===== */
     h1 {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
-        background-clip: text !important;
-        font-weight: 800 !important; font-size: 2.2rem !important; letter-spacing: -0.02em !important;
+        color: var(--ink-strong) !important;
+        font-weight: 800 !important; font-size: 2.0rem !important; letter-spacing: -0.02em !important;
         text-align: center !important; margin-bottom: 0.5rem !important;
     }
-    h2, h3 { color: #1F2937 !important; font-weight: 800 !important; letter-spacing: -0.01em !important; }
+    h2, h3 { color: var(--ink-strong) !important; font-weight: 800 !important; letter-spacing: -0.01em !important; }
+    p, span, div { color: var(--ink-strong); }
     
+    /* ===== 입력 필드 ===== */
     div[data-testid="stTextInput"] input, 
     div[data-testid="stNumberInput"] input {
-        background-color: #FFFFFF !important; border: 2px solid #E5E7EB !important;
-        border-radius: 12px !important; color: #1F2937 !important;
-        font-size: 1rem !important; padding: 10px 14px !important; transition: all 0.2s ease !important;
+        background-color: #FFFFFF !important; border: 1.5px solid var(--border-soft) !important;
+        border-radius: 12px !important; color: var(--ink-strong) !important;
+        font-size: 1rem !important; padding: 12px 16px !important; transition: all 0.2s ease !important;
     }
     div[data-testid="stTextInput"] input:focus, div[data-testid="stNumberInput"] input:focus {
-        border-color: #667eea !important; box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important; outline: none !important;
+        border-color: var(--coral) !important; box-shadow: 0 0 0 4px rgba(255, 123, 90, 0.12) !important; outline: none !important;
     }
     
+    /* ===== 셀렉트박스 ===== */
     div[data-baseweb="select"] > div {
-        background-color: #FFFFFF !important; border: 2px solid #E5E7EB !important;
+        background-color: #FFFFFF !important; border: 1.5px solid var(--border-soft) !important;
         border-radius: 12px !important; transition: all 0.2s ease !important;
     }
+    div[data-baseweb="select"]:hover > div { border-color: var(--coral-soft) !important; }
     div[data-baseweb="select"] div[data-baseweb="select-control"] *,
-    div[data-baseweb="select"] span, div[data-baseweb="select"] div { color: #1F2937 !important; }
+    div[data-baseweb="select"] span, div[data-baseweb="select"] div { color: var(--ink-strong) !important; }
     ul[role="listbox"] { background-color: #FFFFFF !important; border-radius: 12px !important; }
-    ul[role="listbox"] li { color: #1F2937 !important; background-color: #FFFFFF !important; }
-    ul[role="listbox"] li:hover { background-color: #F3F4F6 !important; }
+    ul[role="listbox"] li { color: var(--ink-strong) !important; background-color: #FFFFFF !important; }
+    ul[role="listbox"] li:hover { background-color: var(--coral-light) !important; color: var(--ink-strong) !important; }
     
+    /* ============================================================
+       ⭐ 핵심: 질문 텍스트 — 시선 최대 집중
+       ============================================================ */
     .question-text { 
-        font-size: 1.4rem !important; font-weight: 800 !important; line-height: 1.8 !important; 
-        color: #1F2937 !important; margin-bottom: 24px !important;
-        text-align: center !important; word-break: keep-all !important;
+        font-size: 1.5rem !important; 
+        font-weight: 800 !important; 
+        line-height: 1.7 !important; 
+        color: var(--ink-strong) !important;
+        margin: 8px 0 28px 0 !important;
+        text-align: center !important; 
+        word-break: keep-all !important;
+        letter-spacing: -0.015em !important;
     }
     
+    /* ============================================================
+       ⭐ 핵심: 답변 선택 영역 — 흰 카드 + 코랄 강조선
+       ============================================================ */
     div.row-widget.stRadio > div { 
-        gap: 14px !important; margin-bottom: 20px !important; padding: 24px !important;
-        background: linear-gradient(135deg, #F8F9FF 0%, #FDF4FF 100%) !important;
-        border: 2px solid rgba(102, 126, 234, 0.15) !important; border-radius: 18px !important;
+        gap: 16px !important; 
+        margin-bottom: 24px !important; 
+        padding: 8px !important;
+        background: transparent !important;
+        border: none !important;
     }
     div.row-widget.stRadio label {
-        background: #FFFFFF !important; border: 2px solid #E5E7EB !important;
-        border-radius: 14px !important; padding: 16px 20px !important;
-        transition: all 0.25s ease !important; cursor: pointer !important;
+        background: var(--bg-card) !important; 
+        border: 2px solid var(--border-soft) !important;
+        border-radius: 16px !important; 
+        padding: 22px 24px !important;
+        transition: all 0.2s ease !important; 
+        cursor: pointer !important;
+        box-shadow: 0 2px 10px rgba(45, 43, 82, 0.04) !important;
     }
     div.row-widget.stRadio label:hover {
-        border-color: #667eea !important; background: #F8F9FF !important;
-        transform: translateX(4px) !important; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
+        border-color: var(--coral) !important; 
+        background: #FFFAF7 !important;
+        transform: translateX(2px) !important; 
+        box-shadow: 0 6px 18px rgba(255, 123, 90, 0.15) !important;
     }
-    label { line-height: 1.8 !important; font-size: 1.1rem !important; color: #374151 !important;
-        font-weight: 600 !important; word-break: keep-all !important; white-space: pre-wrap !important; }
     
+    /* 라디오 버튼(동그라미) 색상 강조 */
+    div.row-widget.stRadio label > div:first-child {
+        background-color: transparent !important;
+    }
+    div.row-widget.stRadio label[data-baseweb="radio"] > div:first-child > div {
+        border-color: var(--coral) !important;
+    }
+    
+    /* 답변 텍스트 — 매우 잘 보이게 */
+    div.row-widget.stRadio label p,
+    div.row-widget.stRadio label div { 
+        line-height: 1.75 !important; 
+        font-size: 1.1rem !important; 
+        color: var(--ink-strong) !important;
+        font-weight: 600 !important; 
+        word-break: keep-all !important; 
+        white-space: pre-wrap !important;
+    }
+    
+    label { color: var(--ink-strong) !important; font-weight: 600 !important; }
+    
+    /* ===== 일반 버튼 — 코랄 메인 ===== */
     .stButton > button {
-        width: 100% !important; font-size: 1.15rem !important; font-weight: 700 !important;
-        padding: 14px 20px !important; border-radius: 14px !important; border: none !important;
-        background: linear-gradient(135deg, #A8B5FF 0%, #C3A8E8 100%) !important;
-        color: #FFFFFF !important; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.3) !important;
-        transition: all 0.25s ease !important; letter-spacing: -0.01em !important;
+        width: 100% !important; font-size: 1.1rem !important; font-weight: 700 !important;
+        padding: 14px 22px !important; border-radius: 14px !important; border: none !important;
+        background: var(--coral) !important;
+        color: #FFFFFF !important; 
+        box-shadow: 0 4px 14px rgba(255, 123, 90, 0.25) !important;
+        transition: all 0.2s ease !important; letter-spacing: -0.01em !important;
     }
     .stButton > button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 22px rgba(102, 126, 234, 0.4) !important;
-        background: linear-gradient(135deg, #8B9BFF 0%, #B391DD 100%) !important;
+        box-shadow: 0 8px 22px rgba(255, 123, 90, 0.35) !important;
+        background: #FF6948 !important;
     }
     .stButton > button:active { transform: translateY(0) !important; }
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #43E97B 0%, #38F9D7 100%) !important;
-        box-shadow: 0 4px 14px rgba(67, 233, 123, 0.4) !important; color: #064E3B !important;
+        background: var(--ink-strong) !important;
+        box-shadow: 0 4px 14px rgba(45, 43, 82, 0.25) !important; color: #FFFFFF !important;
     }
     .stButton > button[kind="primary"]:hover {
-        background: linear-gradient(135deg, #2DD86A 0%, #28E5C0 100%) !important;
-        box-shadow: 0 8px 22px rgba(67, 233, 123, 0.5) !important;
+        background: #1F1D3D !important;
+        box-shadow: 0 8px 22px rgba(45, 43, 82, 0.35) !important;
     }
     
+    /* ===== 진행바 — 코랄 ===== */
     div[data-testid="stProgress"] > div > div > div {
-        background: linear-gradient(90deg, #667eea 0%, #f093fb 50%, #4facfe 100%) !important;
-        border-radius: 10px !important; height: 12px !important;
+        background: var(--coral) !important;
+        border-radius: 10px !important; height: 10px !important;
     }
     div[data-testid="stProgress"] > div > div {
-        background-color: rgba(255, 255, 255, 0.4) !important; border-radius: 10px !important; height: 12px !important;
+        background-color: var(--coral-light) !important; border-radius: 10px !important; height: 10px !important;
     }
     
+    /* ===== 사이드바 ===== */
     [data-testid="stSidebar"] {
-        background: rgba(255, 255, 255, 0.92) !important;
-        backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+        background: #FFFFFF !important;
+        border-right: 1px solid var(--border-soft) !important;
     }
     [data-testid="stSidebar"] h1 { font-size: 1.4rem !important; }
     
+    /* ===== 알림/캡션/익스팬더 ===== */
     div[data-testid="stAlert"] {
-        border-radius: 16px !important; border: none !important; padding: 16px 20px !important;
-        backdrop-filter: blur(10px) !important; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+        border-radius: 14px !important; border: none !important; padding: 16px 20px !important;
+        box-shadow: 0 2px 10px rgba(45, 43, 82, 0.06) !important;
     }
     div[data-testid="stDataFrame"] {
-        border-radius: 16px !important; overflow: hidden !important; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+        border-radius: 14px !important; overflow: hidden !important; 
+        box-shadow: 0 2px 10px rgba(45, 43, 82, 0.06) !important;
     }
-    div[data-testid="stCaptionContainer"] { text-align: center !important; color: #6B7280 !important; font-weight: 600 !important; }
+    div[data-testid="stCaptionContainer"] { 
+        text-align: center !important; color: var(--ink-light) !important; font-weight: 500 !important; 
+    }
     div[data-testid="stExpander"] {
-        border-radius: 16px !important; border: 1px solid rgba(102, 126, 234, 0.2) !important;
-        background: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(10px) !important;
+        border-radius: 14px !important; border: 1px solid var(--border-soft) !important;
+        background: #FFFFFF !important;
     }
     
+    /* ===== 이모지 뱃지 (질문 위 아이콘 동그라미) ===== */
     .emoji-badge {
         display: flex; align-items: center; justify-content: center;
-        width: 110px; height: 110px; margin: 0 auto 24px auto;
-        background: linear-gradient(135deg, #FEF3FF 0%, #E0E7FF 100%);
-        border-radius: 50%; font-size: 4.2rem;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.25), inset 0 -4px 10px rgba(118, 75, 162, 0.1);
-        animation: floatBadge 3s ease-in-out infinite;
+        width: 96px; height: 96px; margin: 0 auto 20px auto;
+        background: var(--coral-light);
+        border-radius: 50%; font-size: 3.4rem;
+        box-shadow: 0 8px 20px rgba(255, 123, 90, 0.15);
     }
-    @keyframes floatBadge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     
+    /* ===== Hero 헤더 (로그인 화면 등) ===== */
     .hero-header {
-        text-align: center; padding: 28px 20px;
-        background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 100%);
-        backdrop-filter: blur(20px); border-radius: 24px; margin-bottom: 24px;
-        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2); border: 1px solid rgba(255, 255, 255, 0.5);
+        text-align: center; padding: 32px 24px;
+        background: #FFFFFF;
+        border: 1px solid var(--border-soft);
+        border-radius: 20px; margin-bottom: 24px;
+        box-shadow: var(--shadow-card);
     }
-    .hero-header .hero-emoji { font-size: 3.5rem; margin-bottom: 12px; display: inline-block; animation: waveEmoji 2.5s ease-in-out infinite; }
-    @keyframes waveEmoji { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+    .hero-header .hero-emoji { 
+        font-size: 3.2rem; margin-bottom: 12px; display: inline-block; 
+    }
     .hero-header h2 {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        font-weight: 800; font-size: 1.8rem; margin: 0;
+        color: var(--ink-strong) !important;
+        font-weight: 800; font-size: 1.7rem; margin: 0;
     }
-    .hero-header p { color: #6B7280; font-size: 1rem; margin-top: 8px; font-weight: 500; }
+    .hero-header p { color: var(--ink-soft); font-size: 1rem; margin-top: 8px; font-weight: 500; }
     
+    /* ===== 완료 카드 ===== */
     .completion-card {
-        text-align: center; padding: 40px 30px;
-        background: linear-gradient(135deg, #FEF3FF 0%, #E0E7FF 50%, #DBEAFE 100%);
-        border-radius: 28px; box-shadow: 0 20px 50px rgba(102, 126, 234, 0.25);
-        border: 2px solid rgba(255, 255, 255, 0.6); margin-top: 20px;
+        text-align: center; padding: 44px 32px;
+        background: #FFFFFF;
+        border: 1px solid var(--border-soft);
+        border-radius: 24px; box-shadow: var(--shadow-card);
+        margin-top: 20px;
     }
-    .completion-card .big-emoji { font-size: 5rem; margin-bottom: 16px; display: inline-block; animation: bounceEmoji 1.5s ease infinite; }
-    @keyframes bounceEmoji { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+    .completion-card .big-emoji { 
+        font-size: 4.5rem; margin-bottom: 16px; display: inline-block; 
+    }
     .completion-card .message {
-        background: rgba(255, 255, 255, 0.85); border-radius: 18px; padding: 24px 20px; margin-top: 20px;
-        font-size: 1.3rem; font-weight: 700; color: #4C1D95; line-height: 1.7;
-        box-shadow: inset 0 2px 8px rgba(102, 126, 234, 0.1);
+        background: var(--coral-light); 
+        border-radius: 16px; padding: 24px 20px; margin-top: 20px;
+        font-size: 1.2rem; font-weight: 700; color: var(--ink-strong); line-height: 1.7;
     }
     
+    /* ===== 반응형 ===== */
     @media (max-width: 768px) {
-        h1 { font-size: 1.6rem !important; }
-        .question-text { font-size: 1.15rem !important; }
-        .emoji-badge { width: 90px; height: 90px; font-size: 3.4rem; }
+        h1 { font-size: 1.5rem !important; }
+        .question-text { font-size: 1.2rem !important; }
+        .emoji-badge { width: 80px; height: 80px; font-size: 2.8rem; }
         .stButton > button { font-size: 1rem !important; padding: 12px !important; }
-        label { font-size: 1rem !important; }
+        div.row-widget.stRadio label { padding: 18px 18px !important; }
+        div.row-widget.stRadio label p { font-size: 1rem !important; }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -709,9 +781,9 @@ elif st.session_state.login_user_id is None and 'app_mode' in locals() and app_m
             
             with tab3:
                 st.markdown("""
-                <div style="background:linear-gradient(135deg,#FEF3C7,#FED7AA); padding:20px 24px; border-radius:16px; border-left:6px solid #D97706; margin-bottom:16px;">
-                    <h3 style="margin:0; color:#92400E; font-weight:800;">⚠️ 시스템 관리자 전용 화면</h3>
-                    <p style="margin-top:10px; color:#78350F; font-size:1rem; line-height:1.6;">
+                <div style="background:#FFE5DC; padding:20px 24px; border-radius:16px; border-left:6px solid #FF7B5A; margin-bottom:16px;">
+                    <h3 style="margin:0; color:#2D2B52; font-weight:800;">⚠️ 시스템 관리자 전용 화면</h3>
+                    <p style="margin-top:10px; color:#5C5A7A; font-size:1rem; line-height:1.6;">
                     이 화면은 <b>시스템 관리자(데이터베이스 접근 권한 보유자)</b>만 사용할 수 있어요.<br>
                     일반 교사는 비밀번호 분실 시 <b>시스템 관리자에게 직접 연락</b>해 주세요.
                     </p>
@@ -847,40 +919,40 @@ elif st.session_state.login_user_id and st.session_state.login_role == "teacher"
         col_low, col_mid, col_high = st.columns(3)
         with col_low:
             st.markdown("""
-            <div style='padding:16px; background:linear-gradient(135deg,#DBEAFE,#E0F2FE); border-radius:14px; height:240px;'>
-                <h4 style='margin:0; color:#1E40AF;'>🐢 낮은 α (0.1 ~ 0.3)</h4>
-                <p style='font-size:0.9rem; margin-top:8px; color:#1E3A8A;'>
-                <b>안정 우선형</b><br><br>
+            <div style='padding:20px; background:#FFFFFF; border:1px solid #E8E6E0; border-left:5px solid #4FB8B1; border-radius:14px; height:260px; box-shadow:0 4px 14px rgba(45,43,82,0.05);'>
+                <h4 style='margin:0; color:#2D2B52; font-weight:800;'>🐢 낮은 α (0.1 ~ 0.3)</h4>
+                <p style='font-size:0.95rem; margin-top:10px; color:#5C5A7A; line-height:1.7;'>
+                <b style='color:#2D2B52;'>안정 우선형</b><br><br>
                 ✅ 변화에 둔감<br>
                 ✅ 일시적 기분 무시<br>
                 ❌ 위기 신호 늦게 감지<br><br>
-                <i>"오늘 하루 기분만으로 평가하지 말자"</i>
+                <i>"오늘 하루 기분만으로<br>평가하지 말자"</i>
                 </p>
             </div>
             """, unsafe_allow_html=True)
         with col_mid:
             st.markdown("""
-            <div style='padding:16px; background:linear-gradient(135deg,#FEF3C7,#FED7AA); border-radius:14px; height:240px;'>
-                <h4 style='margin:0; color:#92400E;'>⚖️ 중간 α (0.4 ~ 0.7)</h4>
-                <p style='font-size:0.9rem; margin-top:8px; color:#78350F;'>
-                <b>균형형 (권장)</b><br><br>
+            <div style='padding:20px; background:#FFFFFF; border:1px solid #E8E6E0; border-left:5px solid #FF7B5A; border-radius:14px; height:260px; box-shadow:0 4px 14px rgba(45,43,82,0.05);'>
+                <h4 style='margin:0; color:#2D2B52; font-weight:800;'>⚖️ 중간 α (0.4 ~ 0.7)</h4>
+                <p style='font-size:0.95rem; margin-top:10px; color:#5C5A7A; line-height:1.7;'>
+                <b style='color:#FF7B5A;'>균형형 (권장)</b><br><br>
                 ✅ 변화도 감지<br>
                 ✅ 노이즈도 완충<br>
                 ✅ 일반적인 학급에 적합<br><br>
-                <i>"적당히 빠르게, 적당히 신중하게"</i>
+                <i>"적당히 빠르게,<br>적당히 신중하게"</i>
                 </p>
             </div>
             """, unsafe_allow_html=True)
         with col_high:
             st.markdown("""
-            <div style='padding:16px; background:linear-gradient(135deg,#FECACA,#FCA5A5); border-radius:14px; height:240px;'>
-                <h4 style='margin:0; color:#991B1B;'>🐇 높은 α (0.7 ~ 0.9)</h4>
-                <p style='font-size:0.9rem; margin-top:8px; color:#7F1D1D;'>
-                <b>민감 우선형</b><br><br>
+            <div style='padding:20px; background:#FFFFFF; border:1px solid #E8E6E0; border-left:5px solid #7C6FE8; border-radius:14px; height:260px; box-shadow:0 4px 14px rgba(45,43,82,0.05);'>
+                <h4 style='margin:0; color:#2D2B52; font-weight:800;'>🐇 높은 α (0.7 ~ 0.9)</h4>
+                <p style='font-size:0.95rem; margin-top:10px; color:#5C5A7A; line-height:1.7;'>
+                <b style='color:#7C6FE8;'>민감 우선형</b><br><br>
                 ✅ 위기 빠르게 감지<br>
                 ✅ 작은 변화도 포착<br>
                 ❌ 일시적 변동에 흔들림<br><br>
-                <i>"한 번이라도 안 좋으면 바로 신호 받자"</i>
+                <i>"한 번이라도 안 좋으면<br>바로 신호 받자"</i>
                 </p>
             </div>
             """, unsafe_allow_html=True)
