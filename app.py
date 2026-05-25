@@ -312,10 +312,35 @@ st.markdown("""
     div[data-testid="stNumberInput"] input {
         background-color: #FFFFFF !important; border: 1.5px solid var(--border-soft) !important;
         border-radius: 12px !important; color: var(--ink-strong) !important;
-        font-size: 1rem !important; padding: 12px 16px !important; transition: all 0.2s ease !important;
+        font-size: 1.1rem !important; padding: 14px 18px !important; transition: all 0.2s ease !important;
     }
     div[data-testid="stTextInput"] input:focus, div[data-testid="stNumberInput"] input:focus {
         border-color: var(--green) !important; box-shadow: 0 0 0 4px rgba(107, 190, 90, 0.15) !important; outline: none !important;
+    }
+    /* 입력 필드 라벨 ("학교 이름", "비밀번호" 등) — 글씨 키움 */
+    div[data-testid="stTextInput"] label,
+    div[data-testid="stNumberInput"] label,
+    div[data-testid="stSelectbox"] label,
+    label[data-testid="stWidgetLabel"],
+    label[data-testid="stWidgetLabel"] p {
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        color: var(--ink-strong) !important;
+    }
+    
+    /* subheader (h3) — "🧑‍🎓 학생 로그인 및 등록" 등 글씨 키움 */
+    h3, [data-testid="stHeading"] h3 { 
+        font-size: 1.5rem !important; 
+        font-weight: 800 !important; 
+    }
+    
+    /* tabs ("🔒 교사 로그인" 등) — 글씨 키움 */
+    button[data-baseweb="tab"],
+    button[data-baseweb="tab"] p,
+    button[role="tab"],
+    button[role="tab"] p {
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
     }
     
     /* ===== 셀렉트박스 ===== */
@@ -325,9 +350,9 @@ st.markdown("""
     }
     div[data-baseweb="select"]:hover > div { border-color: var(--green-soft) !important; }
     div[data-baseweb="select"] div[data-baseweb="select-control"] *,
-    div[data-baseweb="select"] span, div[data-baseweb="select"] div { color: var(--ink-strong) !important; }
+    div[data-baseweb="select"] span, div[data-baseweb="select"] div { color: var(--ink-strong) !important; font-size: 1.05rem !important; }
     ul[role="listbox"] { background-color: #FFFFFF !important; border-radius: 12px !important; }
-    ul[role="listbox"] li { color: var(--ink-strong) !important; background-color: #FFFFFF !important; }
+    ul[role="listbox"] li { color: var(--ink-strong) !important; background-color: #FFFFFF !important; font-size: 1.05rem !important; }
     ul[role="listbox"] li:hover { background-color: var(--green-light) !important; color: var(--ink-strong) !important; }
     
     /* ============================================================
@@ -644,18 +669,18 @@ st.markdown("""
     
     /* ===== Hero 헤더 LARGE (로그인 전) ===== */
     .hero-header-lg {
-        text-align: center; padding: 28px 24px;
+        text-align: center; padding: 36px 28px;
         background: #FFFFFF;
         border: 1px solid var(--border-soft);
-        border-radius: 20px; margin-bottom: 22px;
+        border-radius: 20px; margin-bottom: 24px;
         box-shadow: var(--shadow-card);
     }
-    .hero-header-lg .hero-emoji { font-size: 2.8rem; margin-bottom: 10px; display: inline-block; }
+    .hero-header-lg .hero-emoji { font-size: 3.4rem; margin-bottom: 14px; display: inline-block; }
     .hero-header-lg h2 {
         color: var(--ink-strong) !important;
-        font-weight: 800; font-size: 1.6rem; margin: 0;
+        font-weight: 800; font-size: 2rem; margin: 0;
     }
-    .hero-header-lg p { color: var(--ink-soft); font-size: 0.98rem; margin: 6px 0 0 0; font-weight: 500; }
+    .hero-header-lg p { color: var(--ink-soft); font-size: 1.2rem; margin: 10px 0 0 0; font-weight: 500; }
     
     /* ===== 완료 카드 ===== */
     .completion-card {
