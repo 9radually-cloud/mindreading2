@@ -204,14 +204,15 @@ st.markdown("""
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
     
     /* ============================================================
-       Fresh Green Theme — Calm & Focused
-       메인: #6BBE5A (녹색)
-       강조 정책: 질문/답변 카드만 흰색으로 강하게 분리, 주변은 차분
+       Fresh Green Theme v2 — 강력 적용 버전
+       메인 포인트: #6BBE5A (녹색)
+       정책: 질문/답변에 무조건 시선 집중
        ============================================================ */
     
     :root {
         --bg-main: #F5F4F1;
         --bg-card: #FFFFFF;
+        --bg-answer-zone: #F4FAF1;
         --ink-strong: #2D3B2A;
         --ink-soft: #5C6B58;
         --ink-light: #9BA597;
@@ -219,14 +220,15 @@ st.markdown("""
         --green-deep: #4A9A3E;
         --green-soft: #A8DB9C;
         --green-light: #E8F5E4;
+        --green-bg: #F4FAF1;
         --coral: #FF9F66;
         --coral-light: #FFEDDD;
         --blue: #7AA8E8;
         --blue-light: #E1ECFA;
         --border-soft: #E8E6E0;
+        --border-green: #BFE3B3;
         --shadow-card: 0 6px 24px rgba(45, 59, 42, 0.06);
         --shadow-hover: 0 12px 32px rgba(45, 59, 42, 0.10);
-        --shadow-focus: 0 14px 40px rgba(107, 190, 90, 0.18);
     }
     
     html, body, [data-testid="stAppViewContainer"], .stApp {
@@ -236,18 +238,28 @@ st.markdown("""
     }
     [data-testid="stHeader"] { background: transparent !important; }
     
-    .block-container { padding: 1.5rem 4% !important; max-width: 100% !important; }
+    /* ============================================================
+       전체 폭 확대 — 컨테이너 좌우 여백 크게 줄임
+       ============================================================ */
+    .block-container { 
+        padding: 1.2rem 1.5rem !important; 
+        max-width: 100% !important;
+    }
     @media (min-width: 768px) {
-        .block-container { padding: 2.2rem 8% !important; max-width: 96% !important; }
+        .block-container { 
+            padding: 1.5rem 4% !important; 
+            max-width: 1280px !important;
+            margin: 0 auto !important;
+        }
     }
     
-    /* ===== 일반 카드 ===== */
+    /* ===== 일반 카드 (Streamlit container border=True) ===== */
     div[data-testid="stVerticalBlockBorderWrapper"] {
         background: var(--bg-card) !important;
         border: 1px solid var(--border-soft) !important;
         border-radius: 22px !important;
         box-shadow: var(--shadow-card) !important;
-        padding: 2.8rem 2.4rem !important;
+        padding: 3rem 2.5rem !important;
         margin-top: 1.2rem !important;
         transition: box-shadow 0.25s ease !important;
     }
@@ -255,7 +267,7 @@ st.markdown("""
         box-shadow: var(--shadow-hover) !important;
     }
     @media (max-width: 768px) {
-        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 1.6rem 1.2rem !important; border-radius: 18px !important; }
+        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 2rem 1.4rem !important; border-radius: 18px !important; }
     }
     
     /* ===== 헤딩 ===== */
@@ -291,76 +303,122 @@ st.markdown("""
     ul[role="listbox"] li:hover { background-color: var(--green-light) !important; color: var(--ink-strong) !important; }
     
     /* ============================================================
-       핵심: 질문 텍스트 — 가운데, 크게, 또렷하게
+       ⭐⭐⭐ 핵심 1: 질문 텍스트 — 크고 또렷하게, 가운데
        ============================================================ */
-    .question-text { 
-        font-size: 1.75rem !important; 
+    .question-text,
+    p.question-text,
+    div.question-text { 
+        font-size: 2rem !important; 
         font-weight: 800 !important; 
-        line-height: 1.65 !important; 
+        line-height: 1.6 !important; 
         color: var(--ink-strong) !important;
-        margin: 12px 0 36px 0 !important;
+        margin: 16px auto 40px auto !important;
         text-align: center !important; 
         word-break: keep-all !important;
         letter-spacing: -0.02em !important;
-        padding: 0 1rem !important;
+        padding: 0 1.5rem !important;
+        max-width: 900px !important;
     }
     
     /* ============================================================
-       핵심: 답변 카드 — 가운데 정렬 + 크고 또렷한 글자
+       ⭐⭐⭐ 핵심 2: 답변 라디오 영역 — 연녹 배경존 + 강력 셀렉터
+       
+       Streamlit 라디오 구조:
+       <div class="row-widget stRadio">
+         <div>  ← 옵션들 컨테이너 (여기에 연녹 zone)
+           <label data-baseweb="radio">  ← 각 옵션 (흰 카드)
+             <span>  ← 라디오 동그라미
+             <div>  ← 텍스트 wrapper
+               <div data-testid="stMarkdownContainer">
+                 <p>  ← 실제 답변 텍스트
        ============================================================ */
+    
+    /* 라디오 옵션들 감싸는 컨테이너 = 연녹 배경 존 */
+    div[data-testid="stRadio"] > div,
     div.row-widget.stRadio > div { 
         gap: 18px !important; 
-        margin: 0 auto 28px auto !important; 
-        padding: 0 !important;
-        background: transparent !important;
-        border: none !important;
-        max-width: 760px !important;
+        margin: 0 auto 28px auto !important;
+        padding: 28px 24px !important;
+        background: var(--green-bg) !important;
+        border: 1.5px solid var(--border-green) !important;
+        border-radius: 22px !important;
+        max-width: 900px !important;
     }
-    div.row-widget.stRadio label {
+    
+    /* 각 답변 라벨 = 흰 카드, 가운데 정렬 */
+    div[data-testid="stRadio"] label,
+    div.row-widget.stRadio label,
+    label[data-baseweb="radio"] {
         background: #FFFFFF !important; 
-        border: 2px solid var(--border-soft) !important;
-        border-radius: 18px !important; 
-        padding: 28px 32px !important;
+        border: 2px solid #FFFFFF !important;
+        border-radius: 16px !important; 
+        padding: 26px 28px !important;
         transition: all 0.2s ease !important; 
         cursor: pointer !important;
-        box-shadow: 0 3px 12px rgba(45, 59, 42, 0.05) !important;
+        box-shadow: 0 2px 10px rgba(45, 59, 42, 0.06) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         text-align: center !important;
-        min-height: 80px !important;
+        min-height: 90px !important;
+        width: 100% !important;
     }
-    div.row-widget.stRadio label:hover {
+    div[data-testid="stRadio"] label:hover,
+    div.row-widget.stRadio label:hover,
+    label[data-baseweb="radio"]:hover {
         border-color: var(--green) !important; 
-        background: #F8FCF6 !important;
-        box-shadow: 0 8px 22px rgba(107, 190, 90, 0.20) !important;
+        background: #FAFFF8 !important;
+        box-shadow: 0 8px 22px rgba(107, 190, 90, 0.22) !important;
         transform: translateY(-1px) !important;
     }
-    div.row-widget.stRadio label > div:first-child {
+    
+    /* 라디오 동그라미 영역(왼쪽) - 폭 좁게, 흐트러지지 않게 */
+    div[data-testid="stRadio"] label > div:first-child,
+    label[data-baseweb="radio"] > div:first-child {
         background-color: transparent !important;
         flex-shrink: 0 !important;
+        margin-right: 8px !important;
     }
-    div.row-widget.stRadio label[data-baseweb="radio"] > div:first-child > div {
+    /* 라디오 동그라미 보더 색 */
+    label[data-baseweb="radio"] > div:first-child > div,
+    div[data-testid="stRadio"] label > div:first-child > div {
         border-color: var(--green) !important;
     }
-    div.row-widget.stRadio label p,
-    div.row-widget.stRadio label > div:last-child,
-    div.row-widget.stRadio label > div:last-child p {
+    
+    /* ⭐ 답변 텍스트 자체 — 모든 후손 요소까지 강제 */
+    div[data-testid="stRadio"] label *,
+    div.row-widget.stRadio label *,
+    label[data-baseweb="radio"] *,
+    label[data-baseweb="radio"] p,
+    label[data-baseweb="radio"] div,
+    label[data-baseweb="radio"] span,
+    div[data-testid="stRadio"] label p,
+    div[data-testid="stRadio"] label > div:last-child,
+    div[data-testid="stRadio"] label > div:last-child > div,
+    div[data-testid="stRadio"] label > div:last-child p { 
         line-height: 1.7 !important; 
-        font-size: 1.25rem !important; 
+        font-size: 1.35rem !important; 
         color: var(--ink-strong) !important;
         font-weight: 700 !important; 
         word-break: keep-all !important; 
         white-space: pre-wrap !important;
         text-align: center !important;
-        width: 100% !important;
         margin: 0 !important;
+    }
+    /* 텍스트 wrapper(라벨의 두번째 div)는 가운데 정렬용 flex 차지 */
+    label[data-baseweb="radio"] > div:last-child,
+    div[data-testid="stRadio"] label > div:last-child {
+        flex: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
     }
     
     label { color: var(--ink-strong) !important; font-weight: 600 !important; }
     
     /* ============================================================
-       일반 버튼 — 흰 배경 + 녹색 hover (이전 등)
+       일반 버튼 (이전 등) — 흰 배경
        ============================================================ */
     .stButton > button {
         width: 100% !important; font-size: 1.1rem !important; font-weight: 700 !important;
@@ -380,7 +438,7 @@ st.markdown("""
     .stButton > button:active { transform: translateY(0) !important; }
     
     /* ============================================================
-       Primary 버튼 (다음/제출) — 녹색 + 흰 글자 (대비 강화)
+       Primary 버튼 (다음/제출) — 녹색 + 흰 글자 (자식까지 강제)
        ============================================================ */
     .stButton > button[kind="primary"],
     .stButton > button[kind="primary"] *,
@@ -427,7 +485,7 @@ st.markdown("""
     }
     [data-testid="stSidebar"] h1 { font-size: 1.4rem !important; }
     
-    /* ===== 알림/캡션/익스팬더 ===== */
+    /* ===== 알림 ===== */
     div[data-testid="stAlert"] {
         border-radius: 14px !important; border: none !important; padding: 14px 18px !important;
         box-shadow: 0 2px 10px rgba(45, 59, 42, 0.05) !important;
@@ -446,39 +504,36 @@ st.markdown("""
         background: #FFFFFF !important;
     }
     
-    /* ===== 이모지 뱃지 (질문 위) ===== */
+    /* ===== 이모지 뱃지 ===== */
     .emoji-badge {
         display: flex; align-items: center; justify-content: center;
-        width: 96px; height: 96px; margin: 0 auto 20px auto;
+        width: 100px; height: 100px; margin: 0 auto 22px auto;
         background: var(--green-light);
-        border-radius: 50%; font-size: 3.4rem;
-        box-shadow: 0 8px 20px rgba(107, 190, 90, 0.18);
+        border-radius: 50%; font-size: 3.6rem;
+        box-shadow: 0 8px 22px rgba(107, 190, 90, 0.20);
     }
     
-    /* ===== Hero 헤더 (설문 진행 중) — 컴팩트 ===== */
+    /* ===== Hero 헤더 (설문 진행 중) — 컴팩트 한 줄 ===== */
     .hero-header {
-        text-align: center; padding: 14px 20px;
+        text-align: center; padding: 12px 18px;
         background: #FFFFFF;
         border: 1px solid var(--border-soft);
-        border-radius: 16px; margin-bottom: 18px;
+        border-radius: 14px; margin-bottom: 16px;
         box-shadow: var(--shadow-card);
-        display: flex; align-items: center; justify-content: center; gap: 14px;
+        display: flex; align-items: center; justify-content: center; gap: 12px;
         flex-wrap: wrap;
     }
-    .hero-header .hero-emoji { 
-        font-size: 1.6rem; margin: 0; display: inline-block;
-    }
+    .hero-header .hero-emoji { font-size: 1.5rem; margin: 0; display: inline-block; }
     .hero-header h2 {
         color: var(--ink-strong) !important;
-        font-weight: 700; font-size: 1.05rem; margin: 0;
-        display: inline-block;
+        font-weight: 700; font-size: 1.05rem; margin: 0; display: inline-block;
     }
     .hero-header p { 
         color: var(--ink-soft); font-size: 0.85rem; margin: 0; font-weight: 500;
         display: inline-block;
     }
     
-    /* ===== Hero 헤더 LARGE (로그인 전 첫 화면 전용) ===== */
+    /* ===== Hero 헤더 LARGE (로그인 전) ===== */
     .hero-header-lg {
         text-align: center; padding: 28px 24px;
         background: #FFFFFF;
@@ -486,16 +541,12 @@ st.markdown("""
         border-radius: 20px; margin-bottom: 22px;
         box-shadow: var(--shadow-card);
     }
-    .hero-header-lg .hero-emoji { 
-        font-size: 2.8rem; margin-bottom: 10px; display: inline-block;
-    }
+    .hero-header-lg .hero-emoji { font-size: 2.8rem; margin-bottom: 10px; display: inline-block; }
     .hero-header-lg h2 {
         color: var(--ink-strong) !important;
         font-weight: 800; font-size: 1.6rem; margin: 0;
     }
-    .hero-header-lg p { 
-        color: var(--ink-soft); font-size: 0.98rem; margin: 6px 0 0 0; font-weight: 500;
-    }
+    .hero-header-lg p { color: var(--ink-soft); font-size: 0.98rem; margin: 6px 0 0 0; font-weight: 500; }
     
     /* ===== 완료 카드 ===== */
     .completion-card {
@@ -505,9 +556,7 @@ st.markdown("""
         border-radius: 24px; box-shadow: var(--shadow-card);
         margin-top: 20px;
     }
-    .completion-card .big-emoji { 
-        font-size: 4.5rem; margin-bottom: 16px; display: inline-block; 
-    }
+    .completion-card .big-emoji { font-size: 4.5rem; margin-bottom: 16px; display: inline-block; }
     .completion-card .message {
         background: var(--green-light); 
         border-radius: 16px; padding: 24px 20px; margin-top: 20px;
@@ -517,14 +566,17 @@ st.markdown("""
     /* ===== 반응형 ===== */
     @media (max-width: 768px) {
         h1 { font-size: 1.5rem !important; }
-        .question-text { font-size: 1.35rem !important; padding: 0 !important; }
-        div.row-widget.stRadio label { padding: 20px 18px !important; min-height: 70px !important; }
-        div.row-widget.stRadio label p,
-        div.row-widget.stRadio label > div:last-child,
-        div.row-widget.stRadio label > div:last-child p { font-size: 1.05rem !important; }
+        .question-text { font-size: 1.45rem !important; padding: 0 0.5rem !important; }
+        div[data-testid="stRadio"] > div,
+        div.row-widget.stRadio > div { padding: 16px 12px !important; }
+        div[data-testid="stRadio"] label,
+        div.row-widget.stRadio label,
+        label[data-baseweb="radio"] { padding: 20px 18px !important; min-height: 76px !important; }
+        div[data-testid="stRadio"] label *,
+        label[data-baseweb="radio"] * { font-size: 1.1rem !important; }
         .emoji-badge { width: 80px; height: 80px; font-size: 2.8rem; }
         .stButton > button { font-size: 1rem !important; padding: 12px !important; }
-        .hero-header { padding: 12px 16px; gap: 8px; }
+        .hero-header { padding: 10px 14px; gap: 8px; }
         .hero-header h2 { font-size: 0.95rem; }
     }
     </style>
@@ -698,86 +750,85 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
             key = keys[step]
             data = SURVEY_DATA[key]
             
-            _, main_col, _ = st.columns([1, 8, 1])
-            with main_col:
-                # ===== ④번 개선: 학생은 월/주차 선택 불가, 자동 결정 =====
-                if step == 0:
-                    auto_month, auto_week, auto_year, auto_monday_day = get_current_month_week()
-                    st.session_state.select_month = auto_month
-                    st.session_state.select_week = auto_week
-                    
-                    st.info(f"📅 **{auto_year}년 {auto_month}월 {auto_week}주차** ({auto_month}월 {auto_monday_day}일 주) 기록입니다.\n\n오늘 날짜를 기준으로 자동 입력되었어요.")
+            # 설문은 풀 폭으로 표시 (질문/답변 시선 집중)
+            # ===== ④번 개선: 학생은 월/주차 선택 불가, 자동 결정 =====
+            if step == 0:
+                auto_month, auto_week, auto_year, auto_monday_day = get_current_month_week()
+                st.session_state.select_month = auto_month
+                st.session_state.select_week = auto_week
                 
-                st.progress((step + 1) / total_steps)
-                st.caption(f"총 {total_steps}개 질문 중 {step + 1}번째 질문")
+                st.info(f"📅 **{auto_year}년 {auto_month}월 {auto_week}주차** ({auto_month}월 {auto_monday_day}일 주) 기록입니다.\n\n오늘 날짜를 기준으로 자동 입력되었어요.")
+            
+            st.progress((step + 1) / total_steps)
+            st.caption(f"총 {total_steps}개 질문 중 {step + 1}번째 질문")
+            
+            with st.container(border=True):
+                st.markdown(f"<div class='emoji-badge'>{data['icon']}</div>", unsafe_allow_html=True)
+                st.markdown(f"<p class='question-text'>{data['question']}</p>", unsafe_allow_html=True)
                 
-                with st.container(border=True):
-                    st.markdown(f"<div class='emoji-badge'>{data['icon']}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<p class='question-text'>{data['question']}</p>", unsafe_allow_html=True)
-                    
-                    current_val = st.session_state.survey_responses.get(key, 0)
-                    default_idx = 1 if current_val == 1 else 0
-                    choice = st.radio(f"choice_{key}", data["options"], index=default_idx, label_visibility="collapsed")
-                    st.session_state.survey_responses[key] = 1 if choice == data["options"][1] else 0
+                current_val = st.session_state.survey_responses.get(key, 0)
+                default_idx = 1 if current_val == 1 else 0
+                choice = st.radio(f"choice_{key}", data["options"], index=default_idx, label_visibility="collapsed")
+                st.session_state.survey_responses[key] = 1 if choice == data["options"][1] else 0
 
-                col_prev, col_blank, col_next = st.columns([1, 1, 1])
-                with col_prev:
-                    if step > 0:
-                        if st.button("⬅️ 이전", use_container_width=True):
-                            st.session_state.current_step -= 1
-                            st.rerun()
-                with col_next:
-                    if step < total_steps - 1:
-                        if st.button("다음 ➡️", type="primary", use_container_width=True):
-                            st.session_state.current_step += 1
-                            st.rerun()
-                    else:
-                        if st.button("📊 제출하기", type="primary", use_container_width=True):
-                            weight_key = "weight_m" if st.session_state.login_user_sex == 'male' else "weight_f"
-                            raw_score = sum(SURVEY_DATA[k][weight_key] * st.session_state.survey_responses.get(k, 0) for k in SURVEY_DATA)
-                            raw_score = round(raw_score, 2)
-                            
-                            # ===== ③번 개선: 학급 기본 α + 학생 개별 α =====
-                            alpha = get_effective_alpha(
-                                st.session_state.login_user_id,
-                                st.session_state.login_user_school,
-                                st.session_state.login_user_grade,
-                                st.session_state.login_user_room
-                            )
-                            
-                            conn = get_db_connection()
-                            cursor = conn.cursor()
-                            
-                            # 직전 주차 EMA 추적
-                            prev_week = st.session_state.select_week - 1
-                            prev_month = st.session_state.select_month
-                            if prev_week == 0:
-                                prev_month = st.session_state.select_month - 1 if st.session_state.select_month > 1 else 12
-                                p_year = datetime.date.today().year if prev_month <= datetime.date.today().month else datetime.date.today().year - 1
-                                p_num_days = calendar.monthrange(p_year, prev_month)[1]
-                                p_m_count = sum(1 for d in range(1, p_num_days + 1) if datetime.date(p_year, prev_month, d).weekday() == 0)
-                                prev_week = p_m_count
+            col_prev, col_blank, col_next = st.columns([1, 1, 1])
+            with col_prev:
+                if step > 0:
+                    if st.button("⬅️ 이전", use_container_width=True):
+                        st.session_state.current_step -= 1
+                        st.rerun()
+            with col_next:
+                if step < total_steps - 1:
+                    if st.button("다음 ➡️", type="primary", use_container_width=True):
+                        st.session_state.current_step += 1
+                        st.rerun()
+                else:
+                    if st.button("📊 제출하기", type="primary", use_container_width=True):
+                        weight_key = "weight_m" if st.session_state.login_user_sex == 'male' else "weight_f"
+                        raw_score = sum(SURVEY_DATA[k][weight_key] * st.session_state.survey_responses.get(k, 0) for k in SURVEY_DATA)
+                        raw_score = round(raw_score, 2)
+                        
+                        # ===== ③번 개선: 학급 기본 α + 학생 개별 α =====
+                        alpha = get_effective_alpha(
+                            st.session_state.login_user_id,
+                            st.session_state.login_user_school,
+                            st.session_state.login_user_grade,
+                            st.session_state.login_user_room
+                        )
+                        
+                        conn = get_db_connection()
+                        cursor = conn.cursor()
+                        
+                        # 직전 주차 EMA 추적
+                        prev_week = st.session_state.select_week - 1
+                        prev_month = st.session_state.select_month
+                        if prev_week == 0:
+                            prev_month = st.session_state.select_month - 1 if st.session_state.select_month > 1 else 12
+                            p_year = datetime.date.today().year if prev_month <= datetime.date.today().month else datetime.date.today().year - 1
+                            p_num_days = calendar.monthrange(p_year, prev_month)[1]
+                            p_m_count = sum(1 for d in range(1, p_num_days + 1) if datetime.date(p_year, prev_month, d).weekday() == 0)
+                            prev_week = p_m_count
 
-                            cursor.execute("SELECT score FROM records WHERE user_id=%s AND month=%s AND week=%s", 
-                                           (st.session_state.login_user_id, prev_month, prev_week))
-                            prev_row = cursor.fetchone()
-                            prev_ema = prev_row[0] if prev_row else None
-                            
-                            if prev_ema is None: 
-                                new_ema = raw_score
-                            else: 
-                                new_ema = (raw_score * alpha) + (prev_ema * (1 - alpha))
-                            new_ema = round(new_ema, 2)
-                            
-                            cursor.execute("""
-                                INSERT INTO records (user_id, month, week, score) VALUES (%s, %s, %s, %s)
-                                ON CONFLICT(user_id, month, week) DO UPDATE SET score=EXCLUDED.score
-                            """, (st.session_state.login_user_id, st.session_state.select_month, st.session_state.select_week, new_ema))
-                            conn.commit()
-                            conn.close()
-                            
-                            st.session_state.survey_completed = True
-                            st.rerun()
+                        cursor.execute("SELECT score FROM records WHERE user_id=%s AND month=%s AND week=%s", 
+                                       (st.session_state.login_user_id, prev_month, prev_week))
+                        prev_row = cursor.fetchone()
+                        prev_ema = prev_row[0] if prev_row else None
+                        
+                        if prev_ema is None: 
+                            new_ema = raw_score
+                        else: 
+                            new_ema = (raw_score * alpha) + (prev_ema * (1 - alpha))
+                        new_ema = round(new_ema, 2)
+                        
+                        cursor.execute("""
+                            INSERT INTO records (user_id, month, week, score) VALUES (%s, %s, %s, %s)
+                            ON CONFLICT(user_id, month, week) DO UPDATE SET score=EXCLUDED.score
+                        """, (st.session_state.login_user_id, st.session_state.select_month, st.session_state.select_week, new_ema))
+                        conn.commit()
+                        conn.close()
+                        
+                        st.session_state.survey_completed = True
+                        st.rerun()
 
 # ==========================================
 # 🧑‍🏫 5. 교사용 채널
