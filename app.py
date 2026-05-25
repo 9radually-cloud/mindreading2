@@ -259,16 +259,31 @@ st.markdown("""
         border: 1px solid var(--border-soft) !important;
         border-radius: 22px !important;
         box-shadow: var(--shadow-card) !important;
-        padding: 3.8rem 2.6rem !important;
-        margin-top: 1.5rem !important;
-        margin-bottom: 1.5rem !important;
+        padding: 5rem 2.8rem !important;
+        margin-top: 2rem !important;
+        margin-bottom: 2rem !important;
         transition: box-shadow 0.25s ease !important;
     }
     div[data-testid="stVerticalBlockBorderWrapper"]:hover {
         box-shadow: var(--shadow-hover) !important;
     }
     @media (max-width: 768px) {
-        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 2.5rem 1.4rem !important; border-radius: 18px !important; }
+        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 3rem 1.4rem !important; border-radius: 18px !important; }
+    }
+    
+    /* ============================================================
+       카드 안의 모든 wrapper 폭 일관화 — 좌우 음의 마진 제거 강제
+       ============================================================ */
+    div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"],
+    div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"],
+    div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stElementContainer"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        box-sizing: border-box !important;
     }
     
     /* ===== 헤딩 ===== */
