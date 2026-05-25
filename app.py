@@ -204,29 +204,29 @@ st.markdown("""
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
     
     /* ============================================================
-       Elearn-inspired Calm Cream Theme
-       - 배경: 부드러운 크림 베이지
-       - 포인트: 코랄(#FF7B5A) + 다크네이비(#2D2B52) + 보조 라벤더(#7C6FE8)
-       - 카드: 깨끗한 화이트 + 부드러운 그림자
-       - 강조: 질문/답변 영역에 시선 집중 (다른 요소는 차분하게)
+       Fresh Green Theme — Calm & Focused
+       메인: #6BBE5A (녹색)
+       강조 정책: 질문/답변 카드만 흰색으로 강하게 분리, 주변은 차분
        ============================================================ */
     
     :root {
         --bg-main: #F5F4F1;
         --bg-card: #FFFFFF;
-        --ink-strong: #2D2B52;
-        --ink-soft: #5C5A7A;
-        --ink-light: #9594B0;
-        --coral: #FF7B5A;
-        --coral-soft: #FFA48C;
-        --coral-light: #FFE5DC;
-        --lavender: #7C6FE8;
-        --lavender-light: #EDE9FF;
-        --teal: #4FB8B1;
-        --teal-light: #DBF1EF;
+        --ink-strong: #2D3B2A;
+        --ink-soft: #5C6B58;
+        --ink-light: #9BA597;
+        --green: #6BBE5A;
+        --green-deep: #4A9A3E;
+        --green-soft: #A8DB9C;
+        --green-light: #E8F5E4;
+        --coral: #FF9F66;
+        --coral-light: #FFEDDD;
+        --blue: #7AA8E8;
+        --blue-light: #E1ECFA;
         --border-soft: #E8E6E0;
-        --shadow-card: 0 6px 24px rgba(45, 43, 82, 0.06);
-        --shadow-hover: 0 12px 32px rgba(45, 43, 82, 0.10);
+        --shadow-card: 0 6px 24px rgba(45, 59, 42, 0.06);
+        --shadow-hover: 0 12px 32px rgba(45, 59, 42, 0.10);
+        --shadow-focus: 0 14px 40px rgba(107, 190, 90, 0.18);
     }
     
     html, body, [data-testid="stAppViewContainer"], .stApp {
@@ -236,18 +236,18 @@ st.markdown("""
     }
     [data-testid="stHeader"] { background: transparent !important; }
     
-    .block-container { padding: 2rem 5% !important; max-width: 100% !important; }
+    .block-container { padding: 1.5rem 4% !important; max-width: 100% !important; }
     @media (min-width: 768px) {
-        .block-container { padding: 3rem 10% !important; max-width: 95% !important; }
+        .block-container { padding: 2.2rem 8% !important; max-width: 96% !important; }
     }
     
-    /* ===== 일반 카드 (vertical block) ===== */
+    /* ===== 일반 카드 ===== */
     div[data-testid="stVerticalBlockBorderWrapper"] {
         background: var(--bg-card) !important;
         border: 1px solid var(--border-soft) !important;
-        border-radius: 20px !important;
+        border-radius: 22px !important;
         box-shadow: var(--shadow-card) !important;
-        padding: 2.5rem !important;
+        padding: 2.8rem 2.4rem !important;
         margin-top: 1.2rem !important;
         transition: box-shadow 0.25s ease !important;
     }
@@ -255,14 +255,14 @@ st.markdown("""
         box-shadow: var(--shadow-hover) !important;
     }
     @media (max-width: 768px) {
-        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 1.5rem !important; border-radius: 16px !important; }
+        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 1.6rem 1.2rem !important; border-radius: 18px !important; }
     }
     
-    /* ===== 헤딩 — 단색 다크네이비로 가독성 확보 ===== */
+    /* ===== 헤딩 ===== */
     h1 {
         color: var(--ink-strong) !important;
         font-weight: 800 !important; font-size: 2.0rem !important; letter-spacing: -0.02em !important;
-        text-align: center !important; margin-bottom: 0.5rem !important;
+        text-align: center !important; margin-bottom: 0.4rem !important;
     }
     h2, h3 { color: var(--ink-strong) !important; font-weight: 800 !important; letter-spacing: -0.01em !important; }
     p, span, div { color: var(--ink-strong); }
@@ -275,7 +275,7 @@ st.markdown("""
         font-size: 1rem !important; padding: 12px 16px !important; transition: all 0.2s ease !important;
     }
     div[data-testid="stTextInput"] input:focus, div[data-testid="stNumberInput"] input:focus {
-        border-color: var(--coral) !important; box-shadow: 0 0 0 4px rgba(255, 123, 90, 0.12) !important; outline: none !important;
+        border-color: var(--green) !important; box-shadow: 0 0 0 4px rgba(107, 190, 90, 0.15) !important; outline: none !important;
     }
     
     /* ===== 셀렉트박스 ===== */
@@ -283,105 +283,141 @@ st.markdown("""
         background-color: #FFFFFF !important; border: 1.5px solid var(--border-soft) !important;
         border-radius: 12px !important; transition: all 0.2s ease !important;
     }
-    div[data-baseweb="select"]:hover > div { border-color: var(--coral-soft) !important; }
+    div[data-baseweb="select"]:hover > div { border-color: var(--green-soft) !important; }
     div[data-baseweb="select"] div[data-baseweb="select-control"] *,
     div[data-baseweb="select"] span, div[data-baseweb="select"] div { color: var(--ink-strong) !important; }
     ul[role="listbox"] { background-color: #FFFFFF !important; border-radius: 12px !important; }
     ul[role="listbox"] li { color: var(--ink-strong) !important; background-color: #FFFFFF !important; }
-    ul[role="listbox"] li:hover { background-color: var(--coral-light) !important; color: var(--ink-strong) !important; }
+    ul[role="listbox"] li:hover { background-color: var(--green-light) !important; color: var(--ink-strong) !important; }
     
     /* ============================================================
-       ⭐ 핵심: 질문 텍스트 — 시선 최대 집중
+       핵심: 질문 텍스트 — 가운데, 크게, 또렷하게
        ============================================================ */
     .question-text { 
-        font-size: 1.5rem !important; 
+        font-size: 1.75rem !important; 
         font-weight: 800 !important; 
-        line-height: 1.7 !important; 
+        line-height: 1.65 !important; 
         color: var(--ink-strong) !important;
-        margin: 8px 0 28px 0 !important;
+        margin: 12px 0 36px 0 !important;
         text-align: center !important; 
         word-break: keep-all !important;
-        letter-spacing: -0.015em !important;
+        letter-spacing: -0.02em !important;
+        padding: 0 1rem !important;
     }
     
     /* ============================================================
-       ⭐ 핵심: 답변 선택 영역 — 흰 카드 + 코랄 강조선
+       핵심: 답변 카드 — 가운데 정렬 + 크고 또렷한 글자
        ============================================================ */
     div.row-widget.stRadio > div { 
-        gap: 16px !important; 
-        margin-bottom: 24px !important; 
-        padding: 8px !important;
+        gap: 18px !important; 
+        margin: 0 auto 28px auto !important; 
+        padding: 0 !important;
         background: transparent !important;
         border: none !important;
+        max-width: 760px !important;
     }
     div.row-widget.stRadio label {
-        background: var(--bg-card) !important; 
+        background: #FFFFFF !important; 
         border: 2px solid var(--border-soft) !important;
-        border-radius: 16px !important; 
-        padding: 22px 24px !important;
+        border-radius: 18px !important; 
+        padding: 28px 32px !important;
         transition: all 0.2s ease !important; 
         cursor: pointer !important;
-        box-shadow: 0 2px 10px rgba(45, 43, 82, 0.04) !important;
+        box-shadow: 0 3px 12px rgba(45, 59, 42, 0.05) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        min-height: 80px !important;
     }
     div.row-widget.stRadio label:hover {
-        border-color: var(--coral) !important; 
-        background: #FFFAF7 !important;
-        transform: translateX(2px) !important; 
-        box-shadow: 0 6px 18px rgba(255, 123, 90, 0.15) !important;
+        border-color: var(--green) !important; 
+        background: #F8FCF6 !important;
+        box-shadow: 0 8px 22px rgba(107, 190, 90, 0.20) !important;
+        transform: translateY(-1px) !important;
     }
-    
-    /* 라디오 버튼(동그라미) 색상 강조 */
     div.row-widget.stRadio label > div:first-child {
         background-color: transparent !important;
+        flex-shrink: 0 !important;
     }
     div.row-widget.stRadio label[data-baseweb="radio"] > div:first-child > div {
-        border-color: var(--coral) !important;
+        border-color: var(--green) !important;
     }
-    
-    /* 답변 텍스트 — 매우 잘 보이게 */
     div.row-widget.stRadio label p,
-    div.row-widget.stRadio label div { 
-        line-height: 1.75 !important; 
-        font-size: 1.1rem !important; 
+    div.row-widget.stRadio label > div:last-child,
+    div.row-widget.stRadio label > div:last-child p {
+        line-height: 1.7 !important; 
+        font-size: 1.25rem !important; 
         color: var(--ink-strong) !important;
-        font-weight: 600 !important; 
+        font-weight: 700 !important; 
         word-break: keep-all !important; 
         white-space: pre-wrap !important;
+        text-align: center !important;
+        width: 100% !important;
+        margin: 0 !important;
     }
     
     label { color: var(--ink-strong) !important; font-weight: 600 !important; }
     
-    /* ===== 일반 버튼 — 코랄 메인 ===== */
+    /* ============================================================
+       일반 버튼 — 흰 배경 + 녹색 hover (이전 등)
+       ============================================================ */
     .stButton > button {
         width: 100% !important; font-size: 1.1rem !important; font-weight: 700 !important;
-        padding: 14px 22px !important; border-radius: 14px !important; border: none !important;
-        background: var(--coral) !important;
-        color: #FFFFFF !important; 
-        box-shadow: 0 4px 14px rgba(255, 123, 90, 0.25) !important;
+        padding: 14px 22px !important; border-radius: 14px !important;
+        background: #FFFFFF !important;
+        color: var(--ink-strong) !important; 
+        border: 2px solid var(--border-soft) !important;
+        box-shadow: 0 2px 8px rgba(45, 59, 42, 0.06) !important;
         transition: all 0.2s ease !important; letter-spacing: -0.01em !important;
     }
     .stButton > button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 22px rgba(255, 123, 90, 0.35) !important;
-        background: #FF6948 !important;
+        border-color: var(--green) !important;
+        color: var(--green-deep) !important;
+        box-shadow: 0 6px 18px rgba(107, 190, 90, 0.18) !important;
     }
     .stButton > button:active { transform: translateY(0) !important; }
+    
+    /* ============================================================
+       Primary 버튼 (다음/제출) — 녹색 + 흰 글자 (대비 강화)
+       ============================================================ */
+    .stButton > button[kind="primary"],
+    .stButton > button[kind="primary"] *,
+    .stButton > button[kind="primary"] p,
+    .stButton > button[kind="primary"] div,
+    .stButton > button[kind="primary"] span {
+        background: var(--green) !important;
+        color: #FFFFFF !important;
+        border: none !important;
+    }
     .stButton > button[kind="primary"] {
-        background: var(--ink-strong) !important;
-        box-shadow: 0 4px 14px rgba(45, 43, 82, 0.25) !important; color: #FFFFFF !important;
+        background: var(--green) !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        box-shadow: 0 6px 18px rgba(107, 190, 90, 0.30) !important;
+        font-weight: 800 !important;
+    }
+    .stButton > button[kind="primary"]:hover,
+    .stButton > button[kind="primary"]:hover *,
+    .stButton > button[kind="primary"]:hover p,
+    .stButton > button[kind="primary"]:hover div,
+    .stButton > button[kind="primary"]:hover span {
+        background: var(--green-deep) !important;
+        color: #FFFFFF !important;
     }
     .stButton > button[kind="primary"]:hover {
-        background: #1F1D3D !important;
-        box-shadow: 0 8px 22px rgba(45, 43, 82, 0.35) !important;
+        box-shadow: 0 10px 26px rgba(74, 154, 62, 0.40) !important;
+        transform: translateY(-2px) !important;
     }
     
-    /* ===== 진행바 — 코랄 ===== */
+    /* ===== 진행바 — 녹색 ===== */
     div[data-testid="stProgress"] > div > div > div {
-        background: var(--coral) !important;
+        background: var(--green) !important;
         border-radius: 10px !important; height: 10px !important;
     }
     div[data-testid="stProgress"] > div > div {
-        background-color: var(--coral-light) !important; border-radius: 10px !important; height: 10px !important;
+        background-color: var(--green-light) !important; border-radius: 10px !important; height: 10px !important;
     }
     
     /* ===== 사이드바 ===== */
@@ -393,12 +429,14 @@ st.markdown("""
     
     /* ===== 알림/캡션/익스팬더 ===== */
     div[data-testid="stAlert"] {
-        border-radius: 14px !important; border: none !important; padding: 16px 20px !important;
-        box-shadow: 0 2px 10px rgba(45, 43, 82, 0.06) !important;
+        border-radius: 14px !important; border: none !important; padding: 14px 18px !important;
+        box-shadow: 0 2px 10px rgba(45, 59, 42, 0.05) !important;
+        background: var(--green-light) !important;
     }
+    div[data-testid="stAlert"] * { color: var(--ink-strong) !important; }
     div[data-testid="stDataFrame"] {
         border-radius: 14px !important; overflow: hidden !important; 
-        box-shadow: 0 2px 10px rgba(45, 43, 82, 0.06) !important;
+        box-shadow: 0 2px 10px rgba(45, 59, 42, 0.06) !important;
     }
     div[data-testid="stCaptionContainer"] { 
         text-align: center !important; color: var(--ink-light) !important; font-weight: 500 !important; 
@@ -408,31 +446,56 @@ st.markdown("""
         background: #FFFFFF !important;
     }
     
-    /* ===== 이모지 뱃지 (질문 위 아이콘 동그라미) ===== */
+    /* ===== 이모지 뱃지 (질문 위) ===== */
     .emoji-badge {
         display: flex; align-items: center; justify-content: center;
         width: 96px; height: 96px; margin: 0 auto 20px auto;
-        background: var(--coral-light);
+        background: var(--green-light);
         border-radius: 50%; font-size: 3.4rem;
-        box-shadow: 0 8px 20px rgba(255, 123, 90, 0.15);
+        box-shadow: 0 8px 20px rgba(107, 190, 90, 0.18);
     }
     
-    /* ===== Hero 헤더 (로그인 화면 등) ===== */
+    /* ===== Hero 헤더 (설문 진행 중) — 컴팩트 ===== */
     .hero-header {
-        text-align: center; padding: 32px 24px;
+        text-align: center; padding: 14px 20px;
         background: #FFFFFF;
         border: 1px solid var(--border-soft);
-        border-radius: 20px; margin-bottom: 24px;
+        border-radius: 16px; margin-bottom: 18px;
         box-shadow: var(--shadow-card);
+        display: flex; align-items: center; justify-content: center; gap: 14px;
+        flex-wrap: wrap;
     }
     .hero-header .hero-emoji { 
-        font-size: 3.2rem; margin-bottom: 12px; display: inline-block; 
+        font-size: 1.6rem; margin: 0; display: inline-block;
     }
     .hero-header h2 {
         color: var(--ink-strong) !important;
-        font-weight: 800; font-size: 1.7rem; margin: 0;
+        font-weight: 700; font-size: 1.05rem; margin: 0;
+        display: inline-block;
     }
-    .hero-header p { color: var(--ink-soft); font-size: 1rem; margin-top: 8px; font-weight: 500; }
+    .hero-header p { 
+        color: var(--ink-soft); font-size: 0.85rem; margin: 0; font-weight: 500;
+        display: inline-block;
+    }
+    
+    /* ===== Hero 헤더 LARGE (로그인 전 첫 화면 전용) ===== */
+    .hero-header-lg {
+        text-align: center; padding: 28px 24px;
+        background: #FFFFFF;
+        border: 1px solid var(--border-soft);
+        border-radius: 20px; margin-bottom: 22px;
+        box-shadow: var(--shadow-card);
+    }
+    .hero-header-lg .hero-emoji { 
+        font-size: 2.8rem; margin-bottom: 10px; display: inline-block;
+    }
+    .hero-header-lg h2 {
+        color: var(--ink-strong) !important;
+        font-weight: 800; font-size: 1.6rem; margin: 0;
+    }
+    .hero-header-lg p { 
+        color: var(--ink-soft); font-size: 0.98rem; margin: 6px 0 0 0; font-weight: 500;
+    }
     
     /* ===== 완료 카드 ===== */
     .completion-card {
@@ -446,7 +509,7 @@ st.markdown("""
         font-size: 4.5rem; margin-bottom: 16px; display: inline-block; 
     }
     .completion-card .message {
-        background: var(--coral-light); 
+        background: var(--green-light); 
         border-radius: 16px; padding: 24px 20px; margin-top: 20px;
         font-size: 1.2rem; font-weight: 700; color: var(--ink-strong); line-height: 1.7;
     }
@@ -454,11 +517,15 @@ st.markdown("""
     /* ===== 반응형 ===== */
     @media (max-width: 768px) {
         h1 { font-size: 1.5rem !important; }
-        .question-text { font-size: 1.2rem !important; }
+        .question-text { font-size: 1.35rem !important; padding: 0 !important; }
+        div.row-widget.stRadio label { padding: 20px 18px !important; min-height: 70px !important; }
+        div.row-widget.stRadio label p,
+        div.row-widget.stRadio label > div:last-child,
+        div.row-widget.stRadio label > div:last-child p { font-size: 1.05rem !important; }
         .emoji-badge { width: 80px; height: 80px; font-size: 2.8rem; }
         .stButton > button { font-size: 1rem !important; padding: 12px !important; }
-        div.row-widget.stRadio label { padding: 18px 18px !important; }
-        div.row-widget.stRadio label p { font-size: 1rem !important; }
+        .hero-header { padding: 12px 16px; gap: 8px; }
+        .hero-header h2 { font-size: 0.95rem; }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -489,7 +556,7 @@ else:
 # ==========================================
 if st.session_state.login_user_id is None and 'app_mode' in locals() and app_mode == "🧑‍🎓 학생용 채널":
     st.markdown("""
-        <div class="hero-header">
+        <div class="hero-header-lg">
             <div class="hero-emoji">🌈</div>
             <h2>오늘 하루 나의 기분은?</h2>
             <p>여러분의 마음을 기록하는 안전한 공간이에요 💖</p>
@@ -590,7 +657,7 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
         if st.session_state.survey_completed:
             st.balloons()
             st.markdown(f"""
-                <div class="hero-header">
+                <div class="hero-header-lg">
                     <div class="hero-emoji">🌈</div>
                     <h2>{st.session_state.login_user_name} 친구, 정말 고생했어요!</h2>
                     <p>마음을 솔직하게 들려줘서 고마워요 💝</p>
@@ -600,9 +667,9 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
             st.markdown(f"""
                 <div class="completion-card">
                     <div class="big-emoji">🎉</div>
-                    <h3 style="color:#4C1D95; font-weight:800; margin:0;">마음 전달이 완료되었어요!</h3>
+                    <h3 style="color:#2D3B2A; font-weight:800; margin:0;">마음 전달이 완료되었어요!</h3>
                     <div class="message">💌 {random_message}</div>
-                    <p style="color:#6B7280; font-size:0.95rem; margin-top:20px; font-weight:500;">
+                    <p style="color:#5C6B58; font-size:0.95rem; margin-top:20px; font-weight:500;">
                         선생님께서 소중한 마음을 확인하실 거예요.<br>
                         안전을 위해 왼쪽의 <b>[로그아웃]</b> 버튼을 눌러주세요.
                     </p>
@@ -612,7 +679,7 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
         else:
             st.markdown(f"""
                 <div class="hero-header">
-                    <div class="hero-emoji">🌈</div>
+                    <span class="hero-emoji">🌈</span>
                     <h2>{st.session_state.login_user_name} 친구, 환영해요!</h2>
                     <p>마음 가는 대로 솔직하게 답해주면 돼요 💝</p>
                 </div>
@@ -781,9 +848,9 @@ elif st.session_state.login_user_id is None and 'app_mode' in locals() and app_m
             
             with tab3:
                 st.markdown("""
-                <div style="background:#FFE5DC; padding:20px 24px; border-radius:16px; border-left:6px solid #FF7B5A; margin-bottom:16px;">
-                    <h3 style="margin:0; color:#2D2B52; font-weight:800;">⚠️ 시스템 관리자 전용 화면</h3>
-                    <p style="margin-top:10px; color:#5C5A7A; font-size:1rem; line-height:1.6;">
+                <div style="background:#FFEDDD; padding:20px 24px; border-radius:16px; border-left:6px solid #FF9F66; margin-bottom:16px;">
+                    <h3 style="margin:0; color:#2D3B2A; font-weight:800;">⚠️ 시스템 관리자 전용 화면</h3>
+                    <p style="margin-top:10px; color:#5C6B58; font-size:1rem; line-height:1.6;">
                     이 화면은 <b>시스템 관리자(데이터베이스 접근 권한 보유자)</b>만 사용할 수 있어요.<br>
                     일반 교사는 비밀번호 분실 시 <b>시스템 관리자에게 직접 연락</b>해 주세요.
                     </p>
@@ -919,10 +986,10 @@ elif st.session_state.login_user_id and st.session_state.login_role == "teacher"
         col_low, col_mid, col_high = st.columns(3)
         with col_low:
             st.markdown("""
-            <div style='padding:20px; background:#FFFFFF; border:1px solid #E8E6E0; border-left:5px solid #4FB8B1; border-radius:14px; height:260px; box-shadow:0 4px 14px rgba(45,43,82,0.05);'>
-                <h4 style='margin:0; color:#2D2B52; font-weight:800;'>🐢 낮은 α (0.1 ~ 0.3)</h4>
-                <p style='font-size:0.95rem; margin-top:10px; color:#5C5A7A; line-height:1.7;'>
-                <b style='color:#2D2B52;'>안정 우선형</b><br><br>
+            <div style='padding:20px; background:#FFFFFF; border:1px solid #E8E6E0; border-left:5px solid #7AA8E8; border-radius:14px; height:260px; box-shadow:0 4px 14px rgba(45,43,82,0.05);'>
+                <h4 style='margin:0; color:#2D3B2A; font-weight:800;'>🐢 낮은 α (0.1 ~ 0.3)</h4>
+                <p style='font-size:0.95rem; margin-top:10px; color:#5C6B58; line-height:1.7;'>
+                <b style='color:#2D3B2A;'>안정 우선형</b><br><br>
                 ✅ 변화에 둔감<br>
                 ✅ 일시적 기분 무시<br>
                 ❌ 위기 신호 늦게 감지<br><br>
@@ -932,10 +999,10 @@ elif st.session_state.login_user_id and st.session_state.login_role == "teacher"
             """, unsafe_allow_html=True)
         with col_mid:
             st.markdown("""
-            <div style='padding:20px; background:#FFFFFF; border:1px solid #E8E6E0; border-left:5px solid #FF7B5A; border-radius:14px; height:260px; box-shadow:0 4px 14px rgba(45,43,82,0.05);'>
-                <h4 style='margin:0; color:#2D2B52; font-weight:800;'>⚖️ 중간 α (0.4 ~ 0.7)</h4>
-                <p style='font-size:0.95rem; margin-top:10px; color:#5C5A7A; line-height:1.7;'>
-                <b style='color:#FF7B5A;'>균형형 (권장)</b><br><br>
+            <div style='padding:20px; background:#FFFFFF; border:1px solid #E8E6E0; border-left:5px solid #6BBE5A; border-radius:14px; height:260px; box-shadow:0 4px 14px rgba(45,43,82,0.05);'>
+                <h4 style='margin:0; color:#2D3B2A; font-weight:800;'>⚖️ 중간 α (0.4 ~ 0.7)</h4>
+                <p style='font-size:0.95rem; margin-top:10px; color:#5C6B58; line-height:1.7;'>
+                <b style='color:#6BBE5A;'>균형형 (권장)</b><br><br>
                 ✅ 변화도 감지<br>
                 ✅ 노이즈도 완충<br>
                 ✅ 일반적인 학급에 적합<br><br>
@@ -945,10 +1012,10 @@ elif st.session_state.login_user_id and st.session_state.login_role == "teacher"
             """, unsafe_allow_html=True)
         with col_high:
             st.markdown("""
-            <div style='padding:20px; background:#FFFFFF; border:1px solid #E8E6E0; border-left:5px solid #7C6FE8; border-radius:14px; height:260px; box-shadow:0 4px 14px rgba(45,43,82,0.05);'>
-                <h4 style='margin:0; color:#2D2B52; font-weight:800;'>🐇 높은 α (0.7 ~ 0.9)</h4>
-                <p style='font-size:0.95rem; margin-top:10px; color:#5C5A7A; line-height:1.7;'>
-                <b style='color:#7C6FE8;'>민감 우선형</b><br><br>
+            <div style='padding:20px; background:#FFFFFF; border:1px solid #E8E6E0; border-left:5px solid #FF9F66; border-radius:14px; height:260px; box-shadow:0 4px 14px rgba(45,43,82,0.05);'>
+                <h4 style='margin:0; color:#2D3B2A; font-weight:800;'>🐇 높은 α (0.7 ~ 0.9)</h4>
+                <p style='font-size:0.95rem; margin-top:10px; color:#5C6B58; line-height:1.7;'>
+                <b style='color:#FF9F66;'>민감 우선형</b><br><br>
                 ✅ 위기 빠르게 감지<br>
                 ✅ 작은 변화도 포착<br>
                 ❌ 일시적 변동에 흔들림<br><br>
