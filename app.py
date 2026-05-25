@@ -259,23 +259,30 @@ st.markdown("""
         border: 1px solid var(--border-soft) !important;
         border-radius: 22px !important;
         box-shadow: var(--shadow-card) !important;
-        padding: 6.5rem 2.8rem !important;
-        margin-top: 2rem !important;
-        margin-bottom: 2rem !important;
+        padding: 100px 40px !important;
+        margin-top: 32px !important;
+        margin-bottom: 32px !important;
         transition: box-shadow 0.25s ease !important;
     }
     div[data-testid="stVerticalBlockBorderWrapper"]:hover {
         box-shadow: var(--shadow-hover) !important;
     }
     @media (max-width: 768px) {
-        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 3.5rem 1.4rem !important; border-radius: 18px !important; }
+        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 50px 20px !important; border-radius: 18px !important; }
     }
     
     /* ============================================================
-       카드 안의 모든 wrapper 폭 일관화 — 좌우 음의 마진 제거 강제
+       카드 안의 자식 컨테이너 — 모두 880px 가운데 정렬 강제
+       질문과 답변의 부모인 stElementContainer 자체를 잡음
        ============================================================ */
-    div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"],
-    div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"],
+    div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"] {
+        gap: 0 !important;
+        width: 100% !important;
+        max-width: 880px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-sizing: border-box !important;
+    }
     div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stElementContainer"] {
         width: 100% !important;
         max-width: 100% !important;
@@ -319,7 +326,7 @@ st.markdown("""
     ul[role="listbox"] li:hover { background-color: var(--green-light) !important; color: var(--ink-strong) !important; }
     
     /* ============================================================
-       ⭐⭐⭐ 핵심 1: 질문 텍스트 — 픽셀 max-width로 답변과 동일 강제
+       ⭐⭐⭐ 핵심 1: 질문 텍스트 — 부모(880px) 풀 폭
        ============================================================ */
     .question-text,
     p.question-text,
@@ -328,7 +335,7 @@ st.markdown("""
         font-weight: 800 !important; 
         line-height: 1.6 !important; 
         color: var(--ink-strong) !important;
-        margin: 16px auto 56px auto !important;
+        margin: 16px 0 56px 0 !important;
         text-align: center !important; 
         word-break: keep-all !important;
         letter-spacing: -0.02em !important;
@@ -336,7 +343,6 @@ st.markdown("""
         border: 1.5px solid var(--border-soft) !important;
         border-radius: 20px !important;
         padding: 32px 36px !important;
-        max-width: 880px !important;
         width: 100% !important;
         box-sizing: border-box !important;
         box-shadow: 0 4px 16px rgba(45, 59, 42, 0.06) !important;
@@ -355,11 +361,10 @@ st.markdown("""
              <div>(텍스트)
        ============================================================ */
     
-    /* stRadio 위젯 — 질문과 동일한 픽셀 max-width로 정렬 */
+    /* stRadio 위젯 — 부모(880px) 풀 폭 */
     div[data-testid="stRadio"] {
         width: 100% !important;
-        max-width: 880px !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
     }
