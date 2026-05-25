@@ -361,12 +361,21 @@ st.markdown("""
              <div>(텍스트)
        ============================================================ */
     
-    /* stRadio 위젯 — 부모(880px) 풀 폭 */
-    div[data-testid="stRadio"] {
+    /* stRadio 위젯 — 부모 풀 폭, 자식 wrapper들의 잠재적 padding 제거 */
+    div[data-testid="stRadio"],
+    div[data-testid="stRadio"] > div,
+    div[data-testid="stRadio"] > div > div,
+    div[data-testid="stRadio"] > div[role="radiogroup"] {
         width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
         box-sizing: border-box !important;
+    }
+    div[data-testid="stRadio"] {
+        margin-bottom: 0 !important;
     }
     
     /* 라디오 옵션 컨테이너 — 풀 폭 세로 정렬 */
@@ -374,13 +383,8 @@ st.markdown("""
     div[data-testid="stRadio"] > div:not([data-testid]),
     div.row-widget.stRadio > div { 
         gap: 16px !important; 
-        margin: 0 !important;
-        padding: 0 !important;
         background: transparent !important;
         border: none !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
         display: flex !important;
         flex-direction: column !important;
     }
@@ -565,10 +569,20 @@ st.markdown("""
         background-color: var(--green-light) !important; border-radius: 10px !important; height: 10px !important;
     }
     
-    /* ===== 사이드바 ===== */
+    /* ===== 사이드바 — 폭 확대 ===== */
     [data-testid="stSidebar"] {
         background: #FFFFFF !important;
         border-right: 1px solid var(--border-soft) !important;
+        min-width: 280px !important;
+        width: 280px !important;
+    }
+    [data-testid="stSidebar"][aria-expanded="true"] {
+        min-width: 280px !important;
+        width: 280px !important;
+    }
+    [data-testid="stSidebar"] > div:first-child {
+        min-width: 280px !important;
+        width: 280px !important;
     }
     [data-testid="stSidebar"] h1 { font-size: 1.4rem !important; }
     
@@ -862,6 +876,7 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
             st.caption(f"총 {total_steps}개 질문 중 {step + 1}번째 질문")
             
             with st.container(border=True):
+                st.markdown("<div style='height:24px;'></div>", unsafe_allow_html=True)
                 st.markdown(f"<div class='emoji-badge'>{data['icon']}</div>", unsafe_allow_html=True)
                 st.markdown(f"<p class='question-text'>{data['question']}</p>", unsafe_allow_html=True)
                 
@@ -869,6 +884,7 @@ elif st.session_state.login_user_id and st.session_state.login_role == "student"
                 default_idx = 1 if current_val == 1 else 0
                 choice = st.radio(" ", data["options"], index=default_idx, label_visibility="collapsed", key=f"radio_{key}")
                 st.session_state.survey_responses[key] = 1 if choice == data["options"][1] else 0
+                st.markdown("<div style='height:24px;'></div>", unsafe_allow_html=True)
 
             col_prev, col_blank, col_next = st.columns([1, 1, 1])
             with col_prev:
