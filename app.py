@@ -283,14 +283,19 @@ st.markdown("""
         margin-right: auto !important;
         box-sizing: border-box !important;
     }
-    div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stElementContainer"] {
+    /* ⭐ stElementContainer — HTML attribute width="fit-content"를 강제 덮어쓰기 */
+    div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stElementContainer"],
+    [data-testid="stElementContainer"][width="fit-content"],
+    [data-testid="stElementContainer"] {
         width: 100% !important;
         max-width: 100% !important;
+        min-width: 100% !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
         box-sizing: border-box !important;
+        display: block !important;
     }
     
     /* ===== 헤딩 ===== */
@@ -361,13 +366,16 @@ st.markdown("""
              <div>(텍스트)
        ============================================================ */
     
-    /* stRadio 위젯 — 부모 풀 폭, 자식 wrapper들의 잠재적 padding 제거 */
+    /* stRadio 위젯 — fit-content를 100%로 강제 덮어쓰기 
+       (Streamlit이 내부 wrapper에 width:fit-content를 적용하는 문제 해결) */
     div[data-testid="stRadio"],
     div[data-testid="stRadio"] > div,
     div[data-testid="stRadio"] > div > div,
-    div[data-testid="stRadio"] > div[role="radiogroup"] {
+    div[data-testid="stRadio"] > div[role="radiogroup"],
+    div[data-testid="stRadio"] [role="radiogroup"] {
         width: 100% !important;
         max-width: 100% !important;
+        min-width: 100% !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
         padding-left: 0 !important;
@@ -573,16 +581,16 @@ st.markdown("""
     [data-testid="stSidebar"] {
         background: #FFFFFF !important;
         border-right: 1px solid var(--border-soft) !important;
-        min-width: 280px !important;
-        width: 280px !important;
+        min-width: 400px !important;
+        width: 400px !important;
     }
     [data-testid="stSidebar"][aria-expanded="true"] {
-        min-width: 280px !important;
-        width: 280px !important;
+        min-width: 400px !important;
+        width: 400px !important;
     }
     [data-testid="stSidebar"] > div:first-child {
-        min-width: 280px !important;
-        width: 280px !important;
+        min-width: 400px !important;
+        width: 400px !important;
     }
     [data-testid="stSidebar"] h1 { font-size: 1.4rem !important; }
     
