@@ -259,7 +259,7 @@ st.markdown("""
         border: 1px solid var(--border-soft) !important;
         border-radius: 22px !important;
         box-shadow: var(--shadow-card) !important;
-        padding: 5rem 2.8rem !important;
+        padding: 6.5rem 2.8rem !important;
         margin-top: 2rem !important;
         margin-bottom: 2rem !important;
         transition: box-shadow 0.25s ease !important;
@@ -268,7 +268,7 @@ st.markdown("""
         box-shadow: var(--shadow-hover) !important;
     }
     @media (max-width: 768px) {
-        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 3rem 1.4rem !important; border-radius: 18px !important; }
+        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 3.5rem 1.4rem !important; border-radius: 18px !important; }
     }
     
     /* ============================================================
@@ -319,7 +319,7 @@ st.markdown("""
     ul[role="listbox"] li:hover { background-color: var(--green-light) !important; color: var(--ink-strong) !important; }
     
     /* ============================================================
-       ⭐⭐⭐ 핵심 1: 질문 텍스트 — 흰 둥근 네모, 부모 풀 폭
+       ⭐⭐⭐ 핵심 1: 질문 텍스트 — 픽셀 max-width로 답변과 동일 강제
        ============================================================ */
     .question-text,
     p.question-text,
@@ -328,7 +328,7 @@ st.markdown("""
         font-weight: 800 !important; 
         line-height: 1.6 !important; 
         color: var(--ink-strong) !important;
-        margin: 16px 0 44px 0 !important;
+        margin: 16px auto 56px auto !important;
         text-align: center !important; 
         word-break: keep-all !important;
         letter-spacing: -0.02em !important;
@@ -336,9 +336,11 @@ st.markdown("""
         border: 1.5px solid var(--border-soft) !important;
         border-radius: 20px !important;
         padding: 32px 36px !important;
+        max-width: 880px !important;
         width: 100% !important;
         box-sizing: border-box !important;
         box-shadow: 0 4px 16px rgba(45, 59, 42, 0.06) !important;
+        display: block !important;
     }
     
     /* ============================================================
@@ -353,10 +355,11 @@ st.markdown("""
              <div>(텍스트)
        ============================================================ */
     
-    /* stRadio 위젯 — 부모 폭 풀 사용 (질문과 동일) */
+    /* stRadio 위젯 — 질문과 동일한 픽셀 max-width로 정렬 */
     div[data-testid="stRadio"] {
         width: 100% !important;
-        margin: 0 0 8px 0 !important;
+        max-width: 880px !important;
+        margin: 0 auto !important;
         padding: 0 !important;
         box-sizing: border-box !important;
     }
@@ -371,6 +374,7 @@ st.markdown("""
         background: transparent !important;
         border: none !important;
         width: 100% !important;
+        max-width: 100% !important;
         box-sizing: border-box !important;
         display: flex !important;
         flex-direction: column !important;
