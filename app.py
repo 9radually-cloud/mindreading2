@@ -325,83 +325,124 @@ st.markdown("""
     }
     
     /* ============================================================
-       ⭐⭐⭐ 핵심 2: 답변 라디오 — 흰 둥근 네모만, 가운데 정렬
+       ⭐⭐⭐ 핵심 2: 답변 라디오 — 흰 둥근 네모, 질문과 가로 폭 일치
        
        Streamlit 라디오 구조:
        <div data-testid="stRadio">
          <label>(위젯 라벨 — collapsed로 숨김)
-         <div role="radiogroup">  ← 옵션 컨테이너 (배경 투명!)
+         <div role="radiogroup">  ← 옵션 컨테이너
            <label data-baseweb="radio">  ← 각 옵션 (흰 카드)
              <div>(라디오 동그라미)
              <div>(텍스트)
+       
+       선택된 라벨은 input[type=radio]가 checked 됨
        ============================================================ */
     
-    /* 라디오 옵션 컨테이너 — 배경 투명, 단순 정렬 */
+    /* stRadio 위젯 자체를 질문과 동일 max-width로 가운데 정렬 */
+    div[data-testid="stRadio"] {
+        max-width: 900px !important;
+        margin: 0 auto 28px auto !important;
+    }
+    
+    /* 라디오 옵션 컨테이너 — 배경 투명, 풀 폭 */
     div[data-testid="stRadio"] > div[role="radiogroup"],
     div[data-testid="stRadio"] > div:not([data-testid]),
     div.row-widget.stRadio > div { 
-        gap: 16px !important; 
-        margin: 0 auto 28px auto !important;
+        gap: 14px !important; 
+        margin: 0 !important;
         padding: 0 !important;
         background: transparent !important;
         border: none !important;
-        max-width: 900px !important;
+        width: 100% !important;
         display: flex !important;
         flex-direction: column !important;
     }
     
-    /* 각 답변 라벨 = 흰 카드 (둥근 네모만) */
+    /* 각 답변 라벨 = 흰 카드 (둥근 네모) */
     div[data-testid="stRadio"] label[data-baseweb="radio"],
     div.row-widget.stRadio label {
         background: #FFFFFF !important; 
         border: 2px solid var(--border-soft) !important;
         border-radius: 16px !important; 
-        padding: 24px 28px !important;
+        padding: 22px 28px 22px 24px !important;
         transition: all 0.2s ease !important; 
         cursor: pointer !important;
         box-shadow: 0 3px 12px rgba(45, 59, 42, 0.06) !important;
-        min-height: 84px !important;
+        min-height: 80px !important;
         width: 100% !important;
-        /* 라벨 자체는 flex로 동그라미 + 텍스트 정렬 */
+        margin: 0 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: flex-start !important;
-        gap: 16px !important;
+        gap: 18px !important;
     }
+    
+    /* hover */
     div[data-testid="stRadio"] label[data-baseweb="radio"]:hover,
     div.row-widget.stRadio label:hover {
-        border-color: var(--green) !important; 
+        border-color: var(--green-soft) !important; 
         background: #FAFFF8 !important;
-        box-shadow: 0 8px 22px rgba(107, 190, 90, 0.22) !important;
+        box-shadow: 0 8px 22px rgba(107, 190, 90, 0.18) !important;
         transform: translateY(-1px) !important;
     }
     
-    /* 라디오 동그라미(첫번째 자식) — 그대로 보이도록 */
+    /* ⭐ 선택된 라벨 = 강한 강조 (input:checked의 부모 라벨)
+       Streamlit BaseWeb는 input[type=radio]를 라벨 안에 둠 */
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked),
+    div.row-widget.stRadio label:has(input:checked) {
+        border: 3px solid var(--green) !important;
+        background: var(--green-light) !important;
+        box-shadow: 0 8px 24px rgba(107, 190, 90, 0.30) !important;
+        transform: translateY(-1px) !important;
+    }
+    /* 선택된 라벨의 텍스트 — 더 진하고 굵게 */
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p,
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div[data-testid="stMarkdownContainer"] p,
+    div.row-widget.stRadio label:has(input:checked) p {
+        color: var(--green-deep) !important;
+        font-weight: 800 !important;
+    }
+    
+    /* 라디오 동그라미(첫번째 자식) — 크기 키우고 색 강조 */
     div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {
         flex-shrink: 0 !important;
         background-color: transparent !important;
+        width: 26px !important;
+        height: 26px !important;
+    }
+    /* BaseWeb radio dot 내부 원 (선택 안된 상태) — 녹색 보더 */
+    div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child > div {
+        border-color: var(--green) !important;
+        border-width: 2.5px !important;
+        width: 26px !important;
+        height: 26px !important;
+    }
+    /* 선택된 동그라미 채움 (BaseWeb은 내부에 점을 그림) — 색 강제 */
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) > div:first-child > div {
+        background-color: var(--green) !important;
+        border-color: var(--green) !important;
     }
     
-    /* 텍스트 wrapper(마지막 자식) — flex로 가운데 정렬 차지 */
+    /* 텍스트 wrapper(마지막 자식) — 왼쪽 정렬 */
     div[data-testid="stRadio"] label[data-baseweb="radio"] > div:last-child {
         flex: 1 !important;
         display: flex !important;
         align-items: center !important;
-        justify-content: center !important;
-        text-align: center !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
     }
     
-    /* 답변 텍스트만 정밀 타겟 (와일드카드 X — 동그라미 보존) */
+    /* 답변 텍스트 자체 — 왼쪽 정렬, 크고 진하게 */
     div[data-testid="stRadio"] label[data-baseweb="radio"] p,
     div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"],
     div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p { 
         line-height: 1.7 !important; 
-        font-size: 1.3rem !important; 
+        font-size: 1.25rem !important; 
         color: var(--ink-strong) !important;
         font-weight: 700 !important; 
         word-break: keep-all !important; 
         white-space: pre-wrap !important;
-        text-align: center !important;
+        text-align: left !important;
         margin: 0 !important;
         width: 100% !important;
     }
@@ -564,12 +605,18 @@ st.markdown("""
         }
         div[data-testid="stRadio"] label[data-baseweb="radio"],
         div.row-widget.stRadio label { 
-            padding: 18px 18px !important; 
-            min-height: 72px !important; 
+            padding: 18px 18px 18px 18px !important; 
+            min-height: 70px !important;
+            gap: 14px !important;
+        }
+        div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child,
+        div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child > div {
+            width: 22px !important;
+            height: 22px !important;
         }
         div[data-testid="stRadio"] label[data-baseweb="radio"] p,
         div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p { 
-            font-size: 1.08rem !important; 
+            font-size: 1.05rem !important; 
         }
         .emoji-badge { width: 80px; height: 80px; font-size: 2.8rem; }
         .stButton > button { font-size: 1rem !important; padding: 12px !important; }
