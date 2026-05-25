@@ -259,15 +259,16 @@ st.markdown("""
         border: 1px solid var(--border-soft) !important;
         border-radius: 22px !important;
         box-shadow: var(--shadow-card) !important;
-        padding: 3rem 2.5rem !important;
-        margin-top: 1.2rem !important;
+        padding: 3.8rem 2.6rem !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
         transition: box-shadow 0.25s ease !important;
     }
     div[data-testid="stVerticalBlockBorderWrapper"]:hover {
         box-shadow: var(--shadow-hover) !important;
     }
     @media (max-width: 768px) {
-        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 2rem 1.4rem !important; border-radius: 18px !important; }
+        div[data-testid="stVerticalBlockBorderWrapper"] { padding: 2.5rem 1.4rem !important; border-radius: 18px !important; }
     }
     
     /* ===== 헤딩 ===== */
@@ -312,7 +313,7 @@ st.markdown("""
         font-weight: 800 !important; 
         line-height: 1.6 !important; 
         color: var(--ink-strong) !important;
-        margin: 16px 0 28px 0 !important;
+        margin: 16px 0 44px 0 !important;
         text-align: center !important; 
         word-break: keep-all !important;
         letter-spacing: -0.02em !important;
@@ -340,24 +341,27 @@ st.markdown("""
     /* stRadio 위젯 — 부모 폭 풀 사용 (질문과 동일) */
     div[data-testid="stRadio"] {
         width: 100% !important;
-        margin: 0 0 28px 0 !important;
+        margin: 0 0 8px 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
     }
     
     /* 라디오 옵션 컨테이너 — 풀 폭 세로 정렬 */
     div[data-testid="stRadio"] > div[role="radiogroup"],
     div[data-testid="stRadio"] > div:not([data-testid]),
     div.row-widget.stRadio > div { 
-        gap: 14px !important; 
+        gap: 16px !important; 
         margin: 0 !important;
         padding: 0 !important;
         background: transparent !important;
         border: none !important;
         width: 100% !important;
+        box-sizing: border-box !important;
         display: flex !important;
         flex-direction: column !important;
     }
     
-    /* 각 답변 라벨 = 흰 카드 (질문과 동일한 폭, 동일한 좌우 정렬) */
+    /* 각 답변 라벨 = 흰 카드 (질문과 동일한 폭) */
     div[data-testid="stRadio"] label[data-baseweb="radio"],
     div.row-widget.stRadio label {
         background: #FFFFFF !important; 
@@ -369,6 +373,7 @@ st.markdown("""
         box-shadow: 0 3px 12px rgba(45, 59, 42, 0.06) !important;
         min-height: 80px !important;
         width: 100% !important;
+        max-width: 100% !important;
         box-sizing: border-box !important;
         margin: 0 !important;
         display: flex !important;
