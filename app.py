@@ -669,18 +669,18 @@ st.markdown("""
     
     /* ===== Hero 헤더 LARGE (로그인 전) ===== */
     .hero-header-lg {
-        text-align: center; padding: 36px 28px;
+        text-align: center; padding: 20px 28px;
         background: #FFFFFF;
         border: 1px solid var(--border-soft);
         border-radius: 20px; margin-bottom: 24px;
         box-shadow: var(--shadow-card);
     }
-    .hero-header-lg .hero-emoji { font-size: 3.4rem; margin-bottom: 14px; display: inline-block; }
+    .hero-header-lg .hero-emoji { font-size: 2.4rem; margin-bottom: 6px; display: inline-block; }
     .hero-header-lg h2 {
         color: var(--ink-strong) !important;
-        font-weight: 800; font-size: 2rem; margin: 0;
+        font-weight: 800; font-size: 1.7rem; margin: 0;
     }
-    .hero-header-lg p { color: var(--ink-soft); font-size: 1.2rem; margin: 10px 0 0 0; font-weight: 500; }
+    .hero-header-lg p { color: var(--ink-soft); font-size: 1.1rem; margin: 6px 0 0 0; font-weight: 500; }
     
     /* ===== 완료 카드 ===== */
     .completion-card {
