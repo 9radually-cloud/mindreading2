@@ -602,20 +602,51 @@ st.markdown("""
         background-color: var(--green-light) !important; border-radius: 10px !important; height: 10px !important;
     }
     
-    /* ===== 사이드바 — 폭 확대 ===== */
+    /* ===== 사이드바 — 400px 기준 비율 반응형 + 수동 드래그 조절 가능 ===== */
+    /* 
+     * width: clamp(MIN, PREFERRED, MAX) - 창 크기에 따라 자동 조절
+     *   기준선: 1600px 화면에서 25vw = 400px (디자인 기준 폭)
+     *   MIN: 320px (좁은 화면에서도 글자 안 깨지게)
+     *   MAX: 500px (큰 화면에서도 너무 넓어지지 않게)
+     * resize: horizontal + overflow: auto - 우측 가장자리 드래그로 수동 조절 가능
+     */
     [data-testid="stSidebar"] {
         background: #FFFFFF !important;
         border-right: 1px solid var(--border-soft) !important;
-        min-width: 400px !important;
-        width: 400px !important;
+        min-width: 320px !important;
+        width: clamp(320px, 25vw, 500px) !important;
+        max-width: 500px !important;
+        resize: horizontal !important;
+        overflow: auto !important;
     }
     [data-testid="stSidebar"][aria-expanded="true"] {
-        min-width: 400px !important;
-        width: 400px !important;
+        min-width: 320px !important;
+        width: clamp(320px, 25vw, 500px) !important;
+        max-width: 500px !important;
     }
     [data-testid="stSidebar"] > div:first-child {
-        min-width: 400px !important;
-        width: 400px !important;
+        min-width: 320px !important;
+        width: 100% !important;
+        max-width: 500px !important;
+    }
+    /* 사이드바 우측 가장자리에 드래그 핸들 시각적 표시 */
+    [data-testid="stSidebar"]::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        width: 6px;
+        height: 60px;
+        background: linear-gradient(to right, transparent 0%, var(--border-soft) 50%, transparent 100%);
+        border-radius: 3px;
+        opacity: 0.5;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+    [data-testid="stSidebar"]:hover::after {
+        opacity: 1;
+        background: linear-gradient(to right, transparent 0%, var(--green-soft) 50%, transparent 100%);
     }
     [data-testid="stSidebar"] h1 { font-size: 1.4rem !important; }
     
